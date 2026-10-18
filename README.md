@@ -9,7 +9,7 @@ The demo for the Directions EMEA 2026 session **"Copilot Studio or Agent Designe
 
 All demo content is fictional (CRONUS US style). **Never add real customer, company or product names.**
 
-**Status (18 Oct 2026):** version 1.0.5.0 compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 28 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent ran the September demo end to end: 10 of 10 decisions as expected after the two-pass instructions (1.0.2), both draft invoices right.
+**Status (18 Oct 2026):** version 1.0.6.0 compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 28 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent ran the September demo end to end: 10 of 10 decisions as expected after the two-pass instructions (1.0.2), both draft invoices right.
 
 ## The scenario
 
@@ -52,7 +52,7 @@ Draft invoices: **Fabrikam Retail 12,040** (5 lines, 2 projects) and **Tailspin 
 4. Role Center: choose the Project Billing Agent avatar with **+**, set it up and activate it. Every company gets its own agent (and its own monthly job); set it up in each company that should bill. Saving the setup schedules the monthly job queue entry (also available as **Schedule Monthly Billing** on the Billing Runs page). The agent gets its profile and permissions (D365 READ + PBA Agent Edit) from the app.
 5. Assign the permission set **PBA Project Billing** to the project managers and to the Copilot Studio connection user.
 6. Demo data: `./tools/Import-DemoData.ps1 -Tenant <tenant id>` (Azure CLI signed in). Then open **Project Journals**, batch **BILLING**, and post the usage lines.
-7. **Billing Runs** → **Run Billing Now** → September 2026, *Project Billing Agent*.
+7. **Billing Runs** → **Run Billing Now** → September 2026. The action always starts a run for the Project Billing Agent; the Copilot Studio agent starts its own runs only through the `billingRuns` API (BC MCP server), never from Business Central.
 
 ### Running the demo again
 

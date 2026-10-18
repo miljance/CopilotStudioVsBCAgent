@@ -53,17 +53,32 @@ page 50204 "PBA Billing Run"
                 {
                 }
             }
+            group(Review)
+            {
+                Caption = 'Review Summary';
+
+                field(ReviewSummary; ReviewSummaryHtml)
+                {
+                    Caption = 'Review Summary';
+                    ToolTip = 'Specifies the draft invoices, what is on hold and what the project manager must decide. Business Central writes it after creating the invoices; the agent sends it as its review request.';
+                    ShowCaption = false;
+                    MultiLine = true;
+                    ExtendedDatatype = RichContent;
+                    Editable = false;
+                }
+            }
             group(Invoices)
             {
                 Caption = 'Draft Invoices';
 
-                field("Review Summary"; Rec."Review Summary")
+                field(InvoiceSummary; InvoiceSummaryHtml)
                 {
+                    Caption = 'Invoice Summary';
+                    ToolTip = 'Specifies the draft invoices of the run, one per customer, with their numbers, amounts and projects.';
+                    ShowCaption = false;
                     MultiLine = true;
-                }
-                field("Invoice Summary"; Rec."Invoice Summary")
-                {
-                    MultiLine = true;
+                    ExtendedDatatype = RichContent;
+                    Editable = false;
                 }
             }
             part(Lines; "PBA Billing Lines")
@@ -122,6 +137,32 @@ page 50204 "PBA Billing Run"
             }
         }
     }
+
+    var
+        ReviewSummaryHtml: Text;
+        InvoiceSummaryHtml: Text;
+
+    trigger OnAfterGetRecord()
+    begin
+        ReviewSummaryHtml := ToHtml(Rec."Review Summary");
+        InvoiceSummaryHtml := ToHtml(Rec."Invoice Summary");
+    end;
+
+    /// <summary>
+    /// Shows a summary as one paragraph per line, full width (rich content). The stored text stays plain, for the agent
+    /// and the API.
+    /// </summary>
+    local procedure ToHtml(PlainText: Text) Html: Text
+    var
+        Line: Text;
+        LineBreak: Text[1];
+    begin
+        LineBreak[1] := 10;
+        PlainText := PlainText.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;');
+        foreach Line in PlainText.Split(LineBreak) do
+            if Line.Trim() <> '' then
+                Html += '<p>' + Line + '</p>';
+    end;
 
     local procedure GetInvoiceFilter() InvoiceFilter: Text
     var

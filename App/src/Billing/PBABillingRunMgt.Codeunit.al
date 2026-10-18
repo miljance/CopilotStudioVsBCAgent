@@ -10,7 +10,7 @@ codeunit 50211 "PBA Billing Run Mgt."
     Access = Internal;
 
     var
-        NoActiveAgentErr: Label 'No active Project Billing Agent was found. Set up and activate the Project Billing Agent first, or choose the Copilot Studio agent.';
+        NoActiveAgentErr: Label 'No active Project Billing Agent was found. Set up and activate the Project Billing Agent in this company first.';
         TaskTitleTxt: Label 'Monthly billing %1', Comment = '%1 = billing run No.';
         TaskMessageTxt: Label 'Prepare the draft invoices of billing run %1 (%2 to %3).', Comment = '%1 = billing run No., %2 = period start, %3 = period end';
         RunNoTok: Label 'BR-%1', Locked = true;

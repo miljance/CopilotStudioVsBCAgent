@@ -58,7 +58,7 @@ page 50203 "PBA Billing Runs"
             {
                 Caption = 'Run Billing Now';
                 Image = CreateDocuments;
-                ToolTip = 'Start a billing run for a month you choose, as the monthly job does on the first day of the month.';
+                ToolTip = 'Start a billing run for the Project Billing Agent for a month you choose, as the monthly job does on the first day of the month.';
 
                 trigger OnAction()
                 var
@@ -68,7 +68,7 @@ page 50203 "PBA Billing Runs"
                 begin
                     if PBAStartBillingRun.RunModal() <> Action::OK then
                         exit;
-                    PBABillingRunMgt.StartRun(PBAStartBillingRun.GetPeriodEnd(), PBAStartBillingRun.GetHandledBy(), PBABillingRun);
+                    PBABillingRunMgt.StartRun(PBAStartBillingRun.GetPeriodEnd(), Enum::"PBA Billing Handler"::"Project Billing Agent", PBABillingRun);
                     Commit();
                     Page.Run(Page::"PBA Billing Run", PBABillingRun);
                 end;
