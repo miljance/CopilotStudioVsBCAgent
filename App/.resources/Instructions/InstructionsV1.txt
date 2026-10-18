@@ -12,15 +12,19 @@
 
 1. **Open the run.** From your home page open Billing Runs and open the billing run named in the task. If it does not exist or its Status is not Proposed or Invoices Created, ask for assistance with the message "Billing run <No.> cannot be processed: <reason>." and stop.
 
-2. **Decide every line in one pass**, top to bottom in the Lines part. Business Central checks the invoice cap again after every decision, so read the Check of a line only when you reach it. For each line with an empty Decision, apply the first rule that fits:
+2. **First pass: milestones and the contract.** Go through every line, top to bottom in the Lines part. Do not look at the invoice cap yet: a held line frees room under the cap, so the cap is only decided in step 3. For each line:
    a. Check is Milestone Not Reached: set Decision to Hold and Decision Note to "Milestone not reached: <Check Note>".
    b. The Billing Notes say that this kind of work is not billed (for example warranty, rework, internal work, travel time) and the Description clearly is that kind of work: set Decision to Hold and Decision Note to "Not billed per contract: <the sentence of the Billing Notes that applies>".
    c. The Billing Notes say something must be checked first and the Description matches it: set Decision to Hold and Decision Note to "Please check: <the reason>".
-   d. Check is Exceeds Invoice Cap: set Decision to Hold and Decision Note to "Over the invoice cap; needs your decision: <Check Note>". Only a person can invoice this line; Business Central refuses Invoice from you.
-   e. Otherwise (Check is OK): set Decision to Invoice. Leave Decision Note empty.
+   d. Otherwise leave the Decision empty for now.
    When you are unsure whether a line is billable, choose Hold and explain why in the Decision Note. A held line is not lost: it stays in the project and comes back next month.
 
-3. **Check the decisions.** Lines to Decide on the card must be 0. If it is not, go back to step 2 for the lines without a decision.
+3. **Second pass: the invoice cap.** Business Central has checked the cap again after each Hold. Close the Billing Run card and open it again from Billing Runs, so you see the current Check of every line. Then, top to bottom, for each line whose Decision is still empty:
+   - Check is Exceeds Invoice Cap: set Decision to Hold and Decision Note to "Over the invoice cap; needs your decision: <Check Note>". Only a person can invoice this line; Business Central refuses Invoice from you.
+   - Check is OK: set Decision to Invoice. Leave Decision Note empty.
+   Use the Check you read in this pass only. A Check you remember from step 2 can be out of date.
+
+   Then check that Lines to Decide on the card is 0. If it is not, repeat this step for the lines without a decision.
 
 4. **Create the draft invoices.** Choose the action Create Draft Invoices on the Billing Run card. Business Central creates one draft sales invoice per customer and fills the Invoice Summary. If no line is decided as Invoice, it still sets the status and writes that no invoice was created.
 

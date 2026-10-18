@@ -5,5 +5,5 @@
 - Work test-first: add or change a test in `Test/`, see it fail, then change `App/`. Tests run in the company `CopilotStudioVsBCAgent`.
 - Never put real customer, company or product names in code, data or instructions. Demo data is fictional (CRONUS US).
 - Business Central computes every amount and enforces the rules (flagged lines, no posting); the agent only decides Invoice/Hold and writes the review. Keep it that way for both agents (BC agent and Copilot Studio through the APIs).
-- Demo data lives in `tools/build_demo_packages.py`; rebuild `demo/*.rapidstart` from it, never edit the packages by hand. If the data changes, update the expected results in README and in the deck (OneDrive folder DirectionsEMEA2026, `_build/build_csvsbc.py`).
+- Demo data lives in `tools/build_demo_packages.py`; rebuild `demo/*.rapidstart` from it, never edit the packages by hand. If the data changes, update the expected results in README and in the deck (OneDrive folder DirectionsEMEA2026/CopilotVsBCAgent, `_build/build_csvsbc.py`).
 - Every agent run is a real agent task and uses Copilot credits: say how many runs, and ask first.
