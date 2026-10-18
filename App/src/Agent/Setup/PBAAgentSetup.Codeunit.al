@@ -202,6 +202,7 @@ codeunit 50203 "PBA Agent Setup"
         if IsNullGuid(TempPBAAgentSetup."User Security ID") then
             exit;
 
+        RestrictUsersToCompany(TempPBAAgentSetup."User Security ID", CopyStr(CompanyName(), 1, 30));
         PBAMonthlyBillingJob.EnsureJobQueueEntry();
 
         if PBAAgentSetupRecord.Get(TempPBAAgentSetup."User Security ID") then
@@ -211,6 +212,35 @@ codeunit 50203 "PBA Agent Setup"
         PBAAgentSetupRecord."User Security ID" := TempPBAAgentSetup."User Security ID";
         PBAAgentSetupRecord."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(PBAAgentSetupRecord."Company Name"));
         PBAAgentSetupRecord.Insert();
+    end;
+
+    /// <summary>
+    /// The setup dialog gives the users of the agent access in all companies (blank Company Name), so the agent showed up
+    /// in every company. A Project Billing agent works in one company: every user entry is limited to that company.
+    /// </summary>
+    procedure RestrictUsersToCompany(AgentUserSecurityId: Guid; AgentCompanyName: Text[30])
+    var
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        TempCompanyAccessControl: Record "Agent Access Control" temporary;
+        Changed: Boolean;
+    begin
+        Agent.GetAgentAccessControl(AgentUserSecurityId, TempAgentAccessControl);
+        if not TempAgentAccessControl.FindSet() then
+            exit;
+        repeat
+            Changed := Changed or (TempAgentAccessControl."Company Name" <> AgentCompanyName);
+            if TempCompanyAccessControl.Get(TempAgentAccessControl."Agent User Security ID", TempAgentAccessControl."User Security ID", AgentCompanyName) then begin
+                TempCompanyAccessControl."Can Configure Agent" := TempCompanyAccessControl."Can Configure Agent" or TempAgentAccessControl."Can Configure Agent";
+                TempCompanyAccessControl.Modify();
+            end else begin
+                TempCompanyAccessControl := TempAgentAccessControl;
+                TempCompanyAccessControl."Company Name" := AgentCompanyName;
+                TempCompanyAccessControl.Insert();
+            end;
+        until TempAgentAccessControl.Next() = 0;
+
+        if Changed then
+            Agent.UpdateAgentAccessControl(AgentUserSecurityId, TempCompanyAccessControl);
     end;
 
     local procedure GetBaseApplicationAppId(): Guid

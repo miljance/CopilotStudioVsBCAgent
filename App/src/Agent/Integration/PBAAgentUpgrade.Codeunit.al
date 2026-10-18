@@ -52,6 +52,7 @@ codeunit 50205 "PBA Agent Upgrade"
         if PBAAgentSetupRecord.FindSet() then
             repeat
                 PBAAgentSetup.UpdateProfile(PBAAgentSetupRecord."User Security ID");
+                PBAAgentSetup.RestrictUsersToCompany(PBAAgentSetupRecord."User Security ID", PBAAgentSetupRecord."Company Name");
             until PBAAgentSetupRecord.Next() = 0;
         PBAMonthlyBillingJob.RepairJobQueueEntry();
     end;
