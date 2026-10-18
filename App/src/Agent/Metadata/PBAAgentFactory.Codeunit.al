@@ -6,7 +6,8 @@ using System.Reflection;
 using System.Security.AccessControl;
 
 /// <summary>
-/// Creates Project Billing agents. Only one can exist: the monthly billing run sends its task to that agent.
+/// Creates Project Billing agents: one per company, because the monthly billing run of a company sends its task to the
+/// agent of that company.
 /// </summary>
 codeunit 50200 "PBA Agent Factory" implements IAgentFactory
 {
@@ -29,6 +30,7 @@ codeunit 50200 "PBA Agent Factory" implements IAgentFactory
     var
         PBAAgentSetupRecord: Record "PBA Agent Setup";
     begin
+        PBAAgentSetupRecord.SetRange("Company Name", CompanyName());
         exit(PBAAgentSetupRecord.IsEmpty());
     end;
 

@@ -1,5 +1,7 @@
 namespace Contoso.ProjectBilling;
 
+using Microsoft.Finance.Dimension;
+using Microsoft.Integration.Entity;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Sales.Document;
 using System.Security.AccessControl;
@@ -20,6 +22,13 @@ permissionset 50201 "PBA Agent Edit"
         tabledata "PBA Billing Line" = RM,
         tabledata "Job Planning Line" = RM,
         tabledata "Job Planning Line Invoice" = RI,
+        // Business Central keeps these API buffers in step with every sales invoice it creates (seen on BC 29: task
+        // 147 stopped on 5475). Users get them from D365 BASIC; the agent has only D365 READ, so they are granted here.
+        tabledata "Sales Invoice Entity Aggregate" = RIMD,
+        tabledata "Sales Invoice Line Aggregate" = RIMD,
+        // A sales line can get a dimension combination that does not exist yet.
+        tabledata "Dimension Set Entry" = RI,
+        tabledata "Dimension Set Tree Node" = RIM,
         page "PBA Billing Runs" = X,
         page "PBA Billing Run" = X,
         page "PBA Billing Lines" = X,

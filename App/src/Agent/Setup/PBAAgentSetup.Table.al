@@ -1,7 +1,8 @@
 namespace Contoso.ProjectBilling;
 
 /// <summary>
-/// One record per Project Billing agent. Links the agent user created by the platform to this app.
+/// One record per Project Billing agent. Links the agent user created by the platform to this app and to the company it
+/// works in: every company can have its own agent, with its own monthly billing job.
 /// </summary>
 table 50200 "PBA Agent Setup"
 {
@@ -22,6 +23,13 @@ table 50200 "PBA Agent Setup"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(2; "Company Name"; Text[30])
+        {
+            Caption = 'Company Name';
+            ToolTip = 'Specifies the company the agent works in.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
 
     keys
@@ -29,6 +37,9 @@ table 50200 "PBA Agent Setup"
         key(Key1; "User Security ID")
         {
             Clustered = true;
+        }
+        key(Company; "Company Name")
+        {
         }
     }
 }

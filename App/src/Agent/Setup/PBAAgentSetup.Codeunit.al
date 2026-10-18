@@ -122,13 +122,14 @@ codeunit 50203 "PBA Agent Setup"
     end;
 
     /// <summary>
-    /// Returns the active Project Billing agent, if there is one.
+    /// Returns the active Project Billing agent of the current company, if there is one.
     /// </summary>
     procedure TryGetActiveAgent(var AgentUserSecurityId: Guid): Boolean
     var
         PBAAgentSetupRecord: Record "PBA Agent Setup";
     begin
         Clear(AgentUserSecurityId);
+        PBAAgentSetupRecord.SetRange("Company Name", CompanyName());
         if not PBAAgentSetupRecord.FindSet() then
             exit(false);
 
@@ -208,6 +209,7 @@ codeunit 50203 "PBA Agent Setup"
 
         PBAAgentSetupRecord.Init();
         PBAAgentSetupRecord."User Security ID" := TempPBAAgentSetup."User Security ID";
+        PBAAgentSetupRecord."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(PBAAgentSetupRecord."Company Name"));
         PBAAgentSetupRecord.Insert();
     end;
 

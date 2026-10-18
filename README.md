@@ -9,7 +9,7 @@ The demo for the Directions EMEA 2026 session **"Copilot Studio or Agent Designe
 
 All demo content is fictional (CRONUS US style). **Never add real customer, company or product names.**
 
-**Status (18 Oct 2026):** version 1.0.0.0 compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 25 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent itself has not run end to end yet (see *Next steps*).
+**Status (18 Oct 2026):** version 1.0.1.0 compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 27 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent itself has not run end to end yet (see *Next steps*).
 
 ## The scenario
 
@@ -49,7 +49,7 @@ Draft invoices: **Fabrikam Retail 12,040** (5 lines, 2 projects) and **Tailspin 
 1. In `App` and `Test`, copy `.vscode/launch.example.json` to `.vscode/launch.json` and set your tenant. `launch.json` is not in the repo.
 2. Publish **App**, then **Test** (the test app needs *Library Assert*).
 3. **Copilot & agent capabilities**: enable *Project Billing Agent*.
-4. Role Center: choose the Project Billing Agent avatar with **+**, set it up and activate it. Saving the setup schedules the monthly job queue entry (also available as **Schedule Monthly Billing** on the Billing Runs page). The agent gets its profile and permissions (D365 READ + PBA Agent Edit) from the app.
+4. Role Center: choose the Project Billing Agent avatar with **+**, set it up and activate it. Every company gets its own agent (and its own monthly job); set it up in each company that should bill. Saving the setup schedules the monthly job queue entry (also available as **Schedule Monthly Billing** on the Billing Runs page). The agent gets its profile and permissions (D365 READ + PBA Agent Edit) from the app.
 5. Assign the permission set **PBA Project Billing** to the project managers and to the Copilot Studio connection user.
 6. Demo data: `./tools/Import-DemoData.ps1 -Tenant <tenant id>` (Azure CLI signed in). Then open **Project Journals**, batch **BILLING**, and post the usage lines.
 7. **Billing Runs** → **Run Billing Now** → September 2026, *Project Billing Agent*.
@@ -72,7 +72,7 @@ Draft invoices: **Fabrikam Retail 12,040** (5 lines, 2 projects) and **Tailspin 
 
 ## Tests
 
-25 tests, without an agent and without Copilot credits: `PBA Test Library` replaces the agent task dispatcher with `PBA Mock Task Dispatcher`, and `PBA Session Context` tells the code whether the session is an agent's. The tests use the company's own CRONUS setup and roll back.
+27 tests, without an agent and without Copilot credits: `PBA Test Library` replaces the agent task dispatcher with `PBA Mock Task Dispatcher`, and `PBA Session Context` tells the code whether the session is an agent's. The tests use the company's own CRONUS setup and roll back.
 
 | Codeunit | Covers |
 | --- | --- |
@@ -80,6 +80,7 @@ Draft invoices: **Fabrikam Retail 12,040** (5 lines, 2 projects) and **Tailspin 
 | 50251 PBA Billing Run Tests | a run becomes one agent task, no task when there is nothing to invoice, no run without an active agent, Copilot Studio runs, run numbers, the period of the monthly job |
 | 50252 PBA Billing Decision Tests | the agent and the API cannot invoice a flagged line, a person can, decisions are fixed once invoiced |
 | 50253 PBA Draft Invoice Tests | one invoice per customer across projects, held lines stay in the project, undecided lines block the invoices, a second round adds to the customer's invoice |
+| 50254 PBA Agent Per Company Tests | one agent per company: an agent of another company does not block a new one |
 
 The test app also contains `PBA Config Errors API` (read-only RapidStart apply errors). `Import-DemoData.ps1` uses it to print why a record was not applied.
 
@@ -94,6 +95,8 @@ The instructions are in `App/.resources/Instructions/InstructionsV1.txt`. To cha
 - **Invoices are created by our action with the standard *Job Create-Invoice*,** not by the agent filling in sales lines.
 - **One task per billing run** (External ID = run No.), created by code. With nothing to invoice there is no task and no credits.
 - **The same backend for both agents,** so the comparison is about the agent tools, not about different logic.
+- **One agent per company.** The setup record names the company; the monthly job and the run of a company go to that company's agent.
+- **The agent gets every permission it needs from the app** (D365 READ + PBA Agent Edit), as in Project Inspector. Creating a sales invoice also writes the API buffers *Sales Invoice Entity Aggregate* and *Sales Invoice Line Aggregate*, which users get from D365 BASIC; PBA Agent Edit grants them. When BC offers an unrelated permission set in a permission request (it offered EXPENSE AGENT for 5475), fix PBA Agent Edit instead.
 
 ## Next steps
 

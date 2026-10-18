@@ -47,10 +47,33 @@ codeunit 50205 "PBA Agent Upgrade"
         PBAAgentSetup: Codeunit "PBA Agent Setup";
         PBAMonthlyBillingJob: Codeunit "PBA Monthly Billing Job";
     begin
+        AssignCompany();
+        PBAAgentSetupRecord.SetRange("Company Name", CompanyName());
         if PBAAgentSetupRecord.FindSet() then
             repeat
                 PBAAgentSetup.UpdateProfile(PBAAgentSetupRecord."User Security ID");
             until PBAAgentSetupRecord.Next() = 0;
         PBAMonthlyBillingJob.RepairJobQueueEntry();
+    end;
+
+    /// <summary>
+    /// Agents created before 1.0.1 have no company. An agent belongs to the company where it got its permissions.
+    /// </summary>
+    local procedure AssignCompany()
+    var
+        PBAAgentSetupRecord: Record "PBA Agent Setup";
+        AccessControl: Record "Access Control";
+    begin
+        PBAAgentSetupRecord.SetRange("Company Name", '');
+        if not PBAAgentSetupRecord.FindSet(true) then
+            exit;
+        repeat
+            AccessControl.SetRange("User Security ID", PBAAgentSetupRecord."User Security ID");
+            AccessControl.SetRange("Company Name", CompanyName());
+            if not AccessControl.IsEmpty() then begin
+                PBAAgentSetupRecord."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(PBAAgentSetupRecord."Company Name"));
+                PBAAgentSetupRecord.Modify();
+            end;
+        until PBAAgentSetupRecord.Next() = 0;
     end;
 }
