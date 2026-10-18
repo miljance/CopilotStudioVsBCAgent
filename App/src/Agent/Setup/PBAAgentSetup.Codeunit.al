@@ -73,28 +73,29 @@ codeunit 50203 "PBA Agent Setup"
     /// billing lines and to create the draft invoices through the Billing Run card.
     /// </summary>
     procedure GetDefaultAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    begin
+        GetAccessControls(TempAccessControlBuffer, CopyStr(CompanyName(), 1, 30));
+    end;
+
+    /// <summary>
+    /// The permission sets of the agent, in its own company only. Never call this with CompanyName() outside a company
+    /// session: in OnUpgradePerDatabase it is blank, and blank gives the agent permissions in every company.
+    /// </summary>
+    local procedure GetAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary; AgentCompanyName: Text[30])
     var
         CurrentModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
         TempAccessControlBuffer.Reset();
         TempAccessControlBuffer.DeleteAll();
-        AddAccessControl(TempAccessControlBuffer, GetBaseApplicationAppId(), DefaultPermissionSetTok);
-        AddAccessControl(TempAccessControlBuffer, CurrentModuleInfo.Id(), AgentEditPermissionSetTok);
+        AddAccessControl(TempAccessControlBuffer, AgentCompanyName, GetBaseApplicationAppId(), DefaultPermissionSetTok);
+        AddAccessControl(TempAccessControlBuffer, AgentCompanyName, CurrentModuleInfo.Id(), AgentEditPermissionSetTok);
     end;
 
-    procedure UpdateAccessControls(AgentUserSecurityId: Guid)
-    var
-        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
-    begin
-        GetDefaultAccessControls(TempAccessControlBuffer);
-        Agent.UpdateAccessControl(AgentUserSecurityId, TempAccessControlBuffer);
-    end;
-
-    local procedure AddAccessControl(var TempAccessControlBuffer: Record "Access Control Buffer" temporary; AppId: Guid; RoleId: Code[20])
+    local procedure AddAccessControl(var TempAccessControlBuffer: Record "Access Control Buffer" temporary; AgentCompanyName: Text[30]; AppId: Guid; RoleId: Code[20])
     begin
         TempAccessControlBuffer.Init();
-        TempAccessControlBuffer."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TempAccessControlBuffer."Company Name"));
+        TempAccessControlBuffer."Company Name" := AgentCompanyName;
         TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
         TempAccessControlBuffer."App ID" := AppId;
         TempAccessControlBuffer."Role ID" := RoleId;
@@ -202,7 +203,7 @@ codeunit 50203 "PBA Agent Setup"
         if IsNullGuid(TempPBAAgentSetup."User Security ID") then
             exit;
 
-        RestrictUsersToCompany(TempPBAAgentSetup."User Security ID", CopyStr(CompanyName(), 1, 30));
+        LimitToCompany(TempPBAAgentSetup."User Security ID", CopyStr(CompanyName(), 1, 30));
         PBAMonthlyBillingJob.EnsureJobQueueEntry();
 
         if PBAAgentSetupRecord.Get(TempPBAAgentSetup."User Security ID") then
@@ -215,32 +216,68 @@ codeunit 50203 "PBA Agent Setup"
     end;
 
     /// <summary>
-    /// The setup dialog gives the users of the agent access in all companies (blank Company Name), so the agent showed up
-    /// in every company. A Project Billing agent works in one company: every user entry is limited to that company.
+    /// A Project Billing agent works in one company: its permissions and the users who may use it are limited to that
+    /// company, so it does not show up in the other companies. The setup dialog gives the users access in all companies
+    /// (blank Company Name), and versions before 1.0.4 gave the permissions in all companies on every upgrade.
+    /// Business Central lets a user change the permissions of an agent only in companies where that user may configure
+    /// the agent, so the users keep their old entries until the permissions are moved.
     /// </summary>
-    procedure RestrictUsersToCompany(AgentUserSecurityId: Guid; AgentCompanyName: Text[30])
+    procedure LimitToCompany(AgentUserSecurityId: Guid; AgentCompanyName: Text[30])
     var
+        AccessControl: Record "Access Control";
         TempAgentAccessControl: Record "Agent Access Control" temporary;
+        TempTransitionAccessControl: Record "Agent Access Control" temporary;
         TempCompanyAccessControl: Record "Agent Access Control" temporary;
-        Changed: Boolean;
+        PermissionsElsewhere: Boolean;
+        UsersElsewhere: Boolean;
     begin
-        Agent.GetAgentAccessControl(AgentUserSecurityId, TempAgentAccessControl);
-        if not TempAgentAccessControl.FindSet() then
+        if AgentCompanyName = '' then
             exit;
-        repeat
-            Changed := Changed or (TempAgentAccessControl."Company Name" <> AgentCompanyName);
-            if TempCompanyAccessControl.Get(TempAgentAccessControl."Agent User Security ID", TempAgentAccessControl."User Security ID", AgentCompanyName) then begin
-                TempCompanyAccessControl."Can Configure Agent" := TempCompanyAccessControl."Can Configure Agent" or TempAgentAccessControl."Can Configure Agent";
-                TempCompanyAccessControl.Modify();
-            end else begin
-                TempCompanyAccessControl := TempAgentAccessControl;
-                TempCompanyAccessControl."Company Name" := AgentCompanyName;
-                TempCompanyAccessControl.Insert();
-            end;
-        until TempAgentAccessControl.Next() = 0;
 
-        if Changed then
+        // Read directly: Agent.GetAccessControl fails on BC 29 ("Both target and source tables must refer to the same
+        // table", Agent Impl. GetPermissionSets).
+        AccessControl.SetRange("User Security ID", AgentUserSecurityId);
+        AccessControl.SetFilter("Company Name", '<>%1', AgentCompanyName);
+        PermissionsElsewhere := not AccessControl.IsEmpty();
+
+        Agent.GetAgentAccessControl(AgentUserSecurityId, TempAgentAccessControl);
+        if TempAgentAccessControl.FindSet() then
+            repeat
+                UsersElsewhere := UsersElsewhere or (TempAgentAccessControl."Company Name" <> AgentCompanyName);
+                AddUserAccess(TempTransitionAccessControl, TempAgentAccessControl, TempAgentAccessControl."Company Name");
+                AddUserAccess(TempTransitionAccessControl, TempAgentAccessControl, '');
+                AddUserAccess(TempTransitionAccessControl, TempAgentAccessControl, AgentCompanyName);
+                AddUserAccess(TempCompanyAccessControl, TempAgentAccessControl, AgentCompanyName);
+            until TempAgentAccessControl.Next() = 0;
+
+        if PermissionsElsewhere then begin
+            Agent.UpdateAgentAccessControl(AgentUserSecurityId, TempTransitionAccessControl);
+            UpdateAccessControls(AgentUserSecurityId, AgentCompanyName);
+        end;
+        if PermissionsElsewhere or UsersElsewhere then
             Agent.UpdateAgentAccessControl(AgentUserSecurityId, TempCompanyAccessControl);
+    end;
+
+    procedure UpdateAccessControls(AgentUserSecurityId: Guid; AgentCompanyName: Text[30])
+    var
+        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
+    begin
+        if AgentCompanyName = '' then
+            exit;
+        GetAccessControls(TempAccessControlBuffer, AgentCompanyName);
+        Agent.UpdateAccessControl(AgentUserSecurityId, TempAccessControlBuffer);
+    end;
+
+    local procedure AddUserAccess(var TempTargetAccessControl: Record "Agent Access Control" temporary; TempSourceAccessControl: Record "Agent Access Control" temporary; AgentCompanyName: Text[30])
+    begin
+        if TempTargetAccessControl.Get(TempSourceAccessControl."Agent User Security ID", TempSourceAccessControl."User Security ID", AgentCompanyName) then begin
+            TempTargetAccessControl."Can Configure Agent" := TempTargetAccessControl."Can Configure Agent" or TempSourceAccessControl."Can Configure Agent";
+            TempTargetAccessControl.Modify();
+            exit;
+        end;
+        TempTargetAccessControl := TempSourceAccessControl;
+        TempTargetAccessControl."Company Name" := AgentCompanyName;
+        TempTargetAccessControl.Insert();
     end;
 
     local procedure GetBaseApplicationAppId(): Guid

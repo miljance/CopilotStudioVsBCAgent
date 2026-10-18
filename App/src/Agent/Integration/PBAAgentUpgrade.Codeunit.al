@@ -3,9 +3,9 @@ namespace Contoso.ProjectBilling;
 using System.Security.AccessControl;
 
 /// <summary>
-/// Every new version of the app brings the instructions from .resources/Instructions/InstructionsV1.txt, the profile
-/// and the permissions to all Project Billing agents. Change the instructions in that file, raise the app version and
-/// publish.
+/// Every new version of the app brings the instructions from .resources/Instructions/InstructionsV1.txt to all Project
+/// Billing agents, and the profile and the permissions (in its own company only) to the agent of each company. Change
+/// the instructions in that file, raise the app version and publish.
 /// </summary>
 codeunit 50205 "PBA Agent Upgrade"
 {
@@ -28,10 +28,10 @@ codeunit 50205 "PBA Agent Upgrade"
 
         repeat
             // An agent whose user was deleted must not block the upgrade of the app.
-            if User.Get(PBAAgentSetupRecord."User Security ID") then begin
-                PBAAgentSetup.UpdateInstructions(PBAAgentSetupRecord."User Security ID");
-                PBAAgentSetup.UpdateAccessControls(PBAAgentSetupRecord."User Security ID");
-            end else
+            // Permissions are set per company in OnUpgradePerCompany: here CompanyName() is blank.
+            if User.Get(PBAAgentSetupRecord."User Security ID") then
+                PBAAgentSetup.UpdateInstructions(PBAAgentSetupRecord."User Security ID")
+            else
                 Session.LogMessage('PBA0001', AgentUserMissingTxt, Verbosity::Warning, DataClassification::SystemMetadata,
                     TelemetryScope::ExtensionPublisher, 'Category', 'Project Billing Agent');
         until PBAAgentSetupRecord.Next() = 0;
@@ -52,7 +52,8 @@ codeunit 50205 "PBA Agent Upgrade"
         if PBAAgentSetupRecord.FindSet() then
             repeat
                 PBAAgentSetup.UpdateProfile(PBAAgentSetupRecord."User Security ID");
-                PBAAgentSetup.RestrictUsersToCompany(PBAAgentSetupRecord."User Security ID", PBAAgentSetupRecord."Company Name");
+                PBAAgentSetup.LimitToCompany(PBAAgentSetupRecord."User Security ID", PBAAgentSetupRecord."Company Name");
+                PBAAgentSetup.UpdateAccessControls(PBAAgentSetupRecord."User Security ID", PBAAgentSetupRecord."Company Name");
             until PBAAgentSetupRecord.Next() = 0;
         PBAMonthlyBillingJob.RepairJobQueueEntry();
     end;

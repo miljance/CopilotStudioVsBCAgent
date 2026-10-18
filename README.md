@@ -9,7 +9,7 @@ The demo for the Directions EMEA 2026 session **"Copilot Studio or Agent Designe
 
 All demo content is fictional (CRONUS US style). **Never add real customer, company or product names.**
 
-**Status (18 Oct 2026):** version 1.0.1.0 compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 27 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent itself has not run end to end yet (see *Next steps*).
+**Status (18 Oct 2026):** version 1.0.4.0 compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 27 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent itself has not run end to end yet (see *Next steps*).
 
 ## The scenario
 
@@ -82,7 +82,7 @@ Draft invoices: **Fabrikam Retail 12,040** (5 lines, 2 projects) and **Tailspin 
 | 50253 PBA Draft Invoice Tests | one invoice per customer across projects, held lines stay in the project, undecided lines block the invoices, a second round adds to the customer's invoice |
 | 50254 PBA Agent Per Company Tests | one agent per company: an agent of another company does not block a new one |
 
-The test app also contains `PBA Config Errors API` (read-only RapidStart apply errors). `Import-DemoData.ps1` uses it to print why a record was not applied.
+The test app also contains two read-only developer APIs: `PBA Config Errors API` (RapidStart apply errors, used by `Import-DemoData.ps1`) and `PBA Agent Diagnostics API` (`agentDiagnostics`: the agent's company, its users and its permissions per company).
 
 ## Agent instructions
 
@@ -95,7 +95,7 @@ The instructions are in `App/.resources/Instructions/InstructionsV1.txt`. To cha
 - **Invoices are created by our action with the standard *Job Create-Invoice*,** not by the agent filling in sales lines.
 - **One task per billing run** (External ID = run No.), created by code. With nothing to invoice there is no task and no credits.
 - **The same backend for both agents,** so the comparison is about the agent tools, not about different logic.
-- **One agent per company.** The setup record names the company; the monthly job and the run of a company go to that company's agent.
+- **One agent per company.** The setup record names the company; the monthly job and the run of a company go to that company's agent. Its permissions and the users who may use it are limited to that company, so it does not show up in the others. Permissions are never set in `OnUpgradePerDatabase`: `CompanyName()` is blank there, and blank means every company. `Agent.GetAccessControl` fails on BC 29, so the app reads *Access Control* directly.
 - **The agent gets every permission it needs from the app** (D365 READ + PBA Agent Edit), as in Project Inspector. Creating a sales invoice also writes the API buffers *Sales Invoice Entity Aggregate* and *Sales Invoice Line Aggregate*, which users get from D365 BASIC; PBA Agent Edit grants them. When BC offers an unrelated permission set in a permission request (it offered EXPENSE AGENT for 5475), fix PBA Agent Edit instead.
 
 ## Next steps
