@@ -57,10 +57,13 @@ page 50204 "PBA Billing Run"
             {
                 Caption = 'Draft Invoices';
 
+                field("Review Summary"; Rec."Review Summary")
+                {
+                    MultiLine = true;
+                }
                 field("Invoice Summary"; Rec."Invoice Summary")
                 {
                     MultiLine = true;
-                    ShowCaption = false;
                 }
             }
             part(Lines; "PBA Billing Lines")

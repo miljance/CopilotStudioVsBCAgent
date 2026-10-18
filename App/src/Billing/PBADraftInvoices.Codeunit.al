@@ -22,6 +22,17 @@ codeunit 50207 "PBA Draft Invoices"
         FlaggedLineErr: Label 'Line %1 is flagged (%2) and was not decided by a person, so it is not invoiced.', Comment = '%1 = line No., %2 = check';
         SummaryLineTxt: Label '%1 for %2 (%3): %4 excl. tax, %5 lines, projects %6', Comment = '%1 = sales invoice No., %2 = customer name, %3 = customer No., %4 = amount, %5 = number of lines, %6 = project numbers';
         NoInvoiceTxt: Label 'No lines are decided as Invoice: no draft invoice was created.';
+        NoDraftInvoiceTxt: Label 'No draft invoice.';
+        OneDraftInvoiceTxt: Label '1 draft invoice: %1 (excl. tax).', Comment = '%1 = customer and amount';
+        DraftInvoicesTxt: Label '%1 draft invoices: %2 (excl. tax).', Comment = '%1 = number of invoices, %2 = customers and amounts';
+        InvoiceAmountTxt: Label '%1 %2', Locked = true;
+        NothingOnHoldTxt: Label 'Nothing on hold.';
+        OnHoldTxt: Label 'On hold: %1 lines, %2.', Comment = '%1 = number of lines, %2 = amount';
+        NoDecisionTxt: Label 'Nothing needs your decision.';
+        YourDecisionTxt: Label 'Your decision: %1.', Comment = '%1 = lines to decide';
+        DecisionLineTxt: Label '%1 (%2, %3), %4', Comment = '%1 = description, %2 = project No., %3 = amount, %4 = reason';
+        OverCapTxt: Label 'over the invoice cap';
+        PleaseCheckTok: Label 'Please check:', Locked = true;
 
     /// <summary>
     /// Returns how many draft invoices the run has after the call.
@@ -55,6 +66,7 @@ codeunit 50207 "PBA Draft Invoices"
 
         PBABillingRun.Status := PBABillingRun.Status::"Invoices Created";
         PBABillingRun."Invoice Summary" := CopyStr(BuildSummary(PBABillingRun), 1, MaxStrLen(PBABillingRun."Invoice Summary"));
+        PBABillingRun."Review Summary" := CopyStr(BuildReviewSummary(PBABillingRun), 1, MaxStrLen(PBABillingRun."Review Summary"));
         PBABillingRun.Modify();
         exit(CountInvoices(PBABillingRun));
     end;
@@ -147,6 +159,81 @@ codeunit 50207 "PBA Draft Invoices"
                     Format(SalesHeader.Amount, 0, '<Precision,2:2><Standard Format,0>'), LineCount, Projects);
             end;
         end;
+    end;
+
+    /// <summary>
+    /// The review request in three sentences: the draft invoices per customer, what is on hold, and only the lines a
+    /// person must decide (over the invoice cap, or held by the agent to be checked). The details stay on the card.
+    /// </summary>
+    procedure BuildReviewSummary(PBABillingRun: Record "PBA Billing Run") Summary: Text
+    var
+        PBABillingLine: Record "PBA Billing Line";
+        SalesHeader: Record "Sales Header";
+        InvoiceNos: List of [Code[20]];
+        InvoiceNo: Code[20];
+        Invoices: Text;
+        Decisions: Text;
+        NewLine: Text[1];
+    begin
+        NewLine[1] := 10;
+        PBABillingLine.SetCurrentKey("Billing Run No.", "Customer No.", "Job No.");
+        PBABillingLine.SetRange("Billing Run No.", PBABillingRun."No.");
+        PBABillingLine.SetFilter("Sales Invoice No.", '<>%1', '');
+        if PBABillingLine.FindSet() then
+            repeat
+                if not InvoiceNos.Contains(PBABillingLine."Sales Invoice No.") then
+                    InvoiceNos.Add(PBABillingLine."Sales Invoice No.");
+            until PBABillingLine.Next() = 0;
+        foreach InvoiceNo in InvoiceNos do
+            if SalesHeader.Get(SalesHeader."Document Type"::Invoice, InvoiceNo) then begin
+                SalesHeader.CalcFields(Amount);
+                if Invoices <> '' then
+                    Invoices += ', ';
+                Invoices += StrSubstNo(InvoiceAmountTxt, SalesHeader."Bill-to Name", FormatAmount(SalesHeader.Amount));
+            end;
+        case InvoiceNos.Count() of
+            0:
+                Summary := NoDraftInvoiceTxt;
+            1:
+                Summary := StrSubstNo(OneDraftInvoiceTxt, Invoices);
+            else
+                Summary := StrSubstNo(DraftInvoicesTxt, InvoiceNos.Count(), Invoices);
+        end;
+
+        PBABillingLine.Reset();
+        PBABillingLine.SetRange("Billing Run No.", PBABillingRun."No.");
+        PBABillingLine.SetRange(Decision, PBABillingLine.Decision::Hold);
+        PBABillingLine.SetRange("Sales Invoice No.", '');
+        PBABillingRun.CalcFields("Amount on Hold");
+        if PBABillingLine.IsEmpty() then
+            Summary += NewLine + NothingOnHoldTxt
+        else
+            Summary += NewLine + StrSubstNo(OnHoldTxt, PBABillingLine.Count(), FormatAmount(PBABillingRun."Amount on Hold"));
+
+        if PBABillingLine.FindSet() then
+            repeat
+                if PBABillingLine.Check = PBABillingLine.Check::"Exceeds Invoice Cap" then
+                    AddDecision(Decisions, PBABillingLine, OverCapTxt)
+                else
+                    if PBABillingLine."Decision Note".StartsWith(PleaseCheckTok) then
+                        AddDecision(Decisions, PBABillingLine, CopyStr(PBABillingLine."Decision Note", StrLen(PleaseCheckTok) + 1).Trim());
+            until PBABillingLine.Next() = 0;
+        if Decisions = '' then
+            Summary += NewLine + NoDecisionTxt
+        else
+            Summary += NewLine + StrSubstNo(YourDecisionTxt, Decisions);
+    end;
+
+    local procedure AddDecision(var Decisions: Text; PBABillingLine: Record "PBA Billing Line"; Reason: Text)
+    begin
+        if Decisions <> '' then
+            Decisions += '; ';
+        Decisions += StrSubstNo(DecisionLineTxt, PBABillingLine.Description, PBABillingLine."Job No.", FormatAmount(PBABillingLine.Amount), Reason);
+    end;
+
+    local procedure FormatAmount(Amount: Decimal): Text
+    begin
+        exit(Format(Amount, 0, '<Precision,2:2><Standard Format,0>'));
     end;
 
     local procedure CountInvoices(PBABillingRun: Record "PBA Billing Run"): Integer

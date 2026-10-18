@@ -87,6 +87,11 @@ page 50206 "PBA Billing Runs API"
                     Caption = 'Invoice Summary';
                     Editable = false;
                 }
+                field(reviewSummary; Rec."Review Summary")
+                {
+                    Caption = 'Review Summary';
+                    Editable = false;
+                }
                 part(billingLines; "PBA Billing Lines API")
                 {
                     Caption = 'Billing Lines';

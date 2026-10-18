@@ -9,7 +9,7 @@ The demo for the Directions EMEA 2026 session **"Copilot Studio or Agent Designe
 
 All demo content is fictional (CRONUS US style). **Never add real customer, company or product names.**
 
-**Status (18 Oct 2026):** version 1.0.4.0 compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 27 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent itself has not run end to end yet (see *Next steps*).
+**Status (18 Oct 2026):** version 1.0.5.0 compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 28 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent ran the September demo end to end: 10 of 10 decisions as expected after the two-pass instructions (1.0.2), both draft invoices right.
 
 ## The scenario
 
@@ -22,7 +22,7 @@ On the first day of every month, a job queue entry starts the billing run for th
 | Which billable planning lines belong to the period, and their amounts | Reads the project's **Billing Notes** (the contract) and compares them with each line's description | Reviews the draft invoices |
 | Fixed price: is the milestone reached by the end of the period? | Sets **Invoice** or **Hold**, with a one-sentence reason | Decides the flagged lines (over the cap, milestone) |
 | Invoice cap (not to exceed), checked again after every decision | Never invoices a flagged line: Business Central refuses it | Chooses Continue (BC agent) or approves in Teams |
-| One draft invoice per customer with the standard *Job Create-Invoice* | Writes the review request from the Invoice Summary | Posts the invoices; the agent never posts |
+| One draft invoice per customer with the standard *Job Create-Invoice* | Sends the Review Summary that Business Central wrote as its review request | Posts the invoices; the agent never posts |
 
 **How the agent knows what to invoice:** through standard Business Central mechanics plus three fields on the project.
 
@@ -72,14 +72,14 @@ Draft invoices: **Fabrikam Retail 12,040** (5 lines, 2 projects) and **Tailspin 
 
 ## Tests
 
-27 tests, without an agent and without Copilot credits: `PBA Test Library` replaces the agent task dispatcher with `PBA Mock Task Dispatcher`, and `PBA Session Context` tells the code whether the session is an agent's. The tests use the company's own CRONUS setup and roll back.
+28 tests, without an agent and without Copilot credits: `PBA Test Library` replaces the agent task dispatcher with `PBA Mock Task Dispatcher`, and `PBA Session Context` tells the code whether the session is an agent's. The tests use the company's own CRONUS setup and roll back.
 
 | Codeunit | Covers |
 | --- | --- |
 | 50250 PBA Billing Proposal Tests | time & material usage up to the period end, planned and budget lines ignored, projects without billing method, milestones (reached, due, future, reached after the period), invoice cap and its recalculation after a hold, billing notes and discount |
 | 50251 PBA Billing Run Tests | a run becomes one agent task, no task when there is nothing to invoice, no run without an active agent, Copilot Studio runs, run numbers, the period of the monthly job |
 | 50252 PBA Billing Decision Tests | the agent and the API cannot invoice a flagged line, a person can, decisions are fixed once invoiced |
-| 50253 PBA Draft Invoice Tests | one invoice per customer across projects, held lines stay in the project, undecided lines block the invoices, a second round adds to the customer's invoice |
+| 50253 PBA Draft Invoice Tests | one invoice per customer across projects, held lines stay in the project, undecided lines block the invoices, a second round adds to the customer's invoice, the short review summary |
 | 50254 PBA Agent Per Company Tests | one agent per company: an agent of another company does not block a new one |
 
 The test app also contains two read-only developer APIs: `PBA Config Errors API` (RapidStart apply errors, used by `Import-DemoData.ps1`) and `PBA Agent Diagnostics API` (`agentDiagnostics`: the agent's company, its users and its permissions per company).
@@ -94,13 +94,14 @@ The instructions are in `App/.resources/Instructions/InstructionsV1.txt`. To cha
 - **The hard rules are code, not instructions.** A flagged line cannot be invoiced by an agent session or through the API. The agent cannot post.
 - **Invoices are created by our action with the standard *Job Create-Invoice*,** not by the agent filling in sales lines.
 - **One task per billing run** (External ID = run No.), created by code. With nothing to invoice there is no task and no credits.
+- **Business Central writes the review request.** After Create Draft Invoices it fills *Review Summary* in three sentences (draft invoices per customer, what is on hold, what the project manager must decide); the agent sends it unchanged. The first version let the agent compose the message from the lines: correct, but far too long.
 - **The same backend for both agents,** so the comparison is about the agent tools, not about different logic.
 - **One agent per company.** The setup record names the company; the monthly job and the run of a company go to that company's agent. Its permissions and the users who may use it are limited to that company, so it does not show up in the others. Permissions are never set in `OnUpgradePerDatabase`: `CompanyName()` is blank there, and blank means every company. `Agent.GetAccessControl` fails on BC 29, so the app reads *Access Control* directly.
 - **The agent gets every permission it needs from the app** (D365 READ + PBA Agent Edit), as in Project Inspector. Creating a sales invoice also writes the API buffers *Sales Invoice Entity Aggregate* and *Sales Invoice Line Aggregate*, which users get from D365 BASIC; PBA Agent Edit grants them. When BC offers an unrelated permission set in a permission request (it offered EXPENSE AGENT for 5475), fix PBA Agent Edit instead.
 
 ## Next steps
 
-1. Run the BC agent end to end on the September data (agent task, review, Continue, second round) and record it. Measure its Copilot credits, twice.
+1. Run the full round once more (review, gift card to Invoice, Continue, second invoice round), record it and measure its Copilot credits, twice.
 2. Nikola: Copilot Studio agent with the MCP configuration for `billingRuns` and `billingLines`, the monthly flow and the Teams approval.
 3. Fill in the comparison slides together after both runs.
 4. Before the session, upload the app as a per-tenant extension, so that a sandbox update does not remove the dev publish.

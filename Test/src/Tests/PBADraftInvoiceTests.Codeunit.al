@@ -141,6 +141,47 @@ codeunit 50253 "PBA Draft Invoice Tests"
         Assert.AreEqual(InvoiceNo, PBABillingLine."Sales Invoice No.", 'Same invoice');
     end;
 
+    [Test]
+    procedure ReviewSummaryIsShort()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        Invoiced: Record "Job Planning Line";
+        Travel: Record "Job Planning Line";
+        OverCap: Record "Job Planning Line";
+        PBABillingRun: Record "PBA Billing Run";
+        PBABillingLine: Record "PBA Billing Line";
+        PBADraftInvoices: Codeunit "PBA Draft Invoices";
+        CustomerName: Text;
+    begin
+        // [GIVEN] One line invoiced (2,000), one held per contract (1,000), one over the cap and held for the project manager (3,000)
+        PBATestLibrary.Initialize();
+        CreateProjectWithUsage(Job, PBATestLibrary.GetCustomer(1), 2, Invoiced);
+        Job."PBA Invoice Cap" := 4000;
+        Job.Modify();
+        JobTask.Get(Invoiced."Job No.", Invoiced."Job Task No.");
+        PBATestLibrary.CreateUsageLine(JobTask, DMY2Date(16, 9, 2026), 'Travel to the customer', 1, 1000, Travel);
+        PBATestLibrary.CreateUsageLine(JobTask, DMY2Date(20, 9, 2026), 'Gift card extension', 3, 1000, OverCap);
+        PBATestLibrary.CreateRun(DMY2Date(1, 9, 2026), PBABillingRun);
+        PBATestLibrary.SetAgentSession(true);
+        PBATestLibrary.Decide(PBABillingRun, Invoiced, Enum::"PBA Billing Decision"::Invoice);
+        PBATestLibrary.Decide(PBABillingRun, Travel, Enum::"PBA Billing Decision"::Hold);
+        PBATestLibrary.Decide(PBABillingRun, OverCap, Enum::"PBA Billing Decision"::Hold);
+        PBATestLibrary.FindLine(PBABillingRun, OverCap, PBABillingLine);
+        Assert.AreEqual(PBABillingLine.Check::"Exceeds Invoice Cap", PBABillingLine.Check, 'Precondition: over the cap');
+
+        // [WHEN] The draft invoices are created
+        PBADraftInvoices.CreateDraftInvoices(PBABillingRun);
+
+        // [THEN] The review summary names the invoice, the held total and only the line the project manager must decide
+        PBABillingRun.Get(PBABillingRun."No.");
+        CustomerName := Job."Bill-to Name";
+        Assert.IsTrue(StrPos(PBABillingRun."Review Summary", '1 draft invoice: ' + CustomerName + ' 2,000.00') > 0, PBABillingRun."Review Summary");
+        Assert.IsTrue(StrPos(PBABillingRun."Review Summary", 'On hold: 2 lines, 4,000.00.') > 0, PBABillingRun."Review Summary");
+        Assert.IsTrue(StrPos(PBABillingRun."Review Summary", 'Your decision: Gift card extension (' + Job."No." + ', 3,000.00), over the invoice cap.') > 0, PBABillingRun."Review Summary");
+        Assert.IsTrue(StrPos(PBABillingRun."Review Summary", 'Travel') = 0, 'A line held per contract needs no decision.');
+    end;
+
     local procedure CreateProjectWithUsage(var Job: Record Job; CustomerNo: Code[20]; Qty: Decimal; var Usage: Record "Job Planning Line")
     var
         JobTask: Record "Job Task";

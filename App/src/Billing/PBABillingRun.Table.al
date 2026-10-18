@@ -60,6 +60,12 @@ table 50202 "PBA Billing Run"
             ToolTip = 'Specifies the draft invoices of the run, one per customer, with their amounts, as Business Central wrote them after creating the invoices.';
             Editable = false;
         }
+        field(11; "Review Summary"; Text[1024])
+        {
+            Caption = 'Review Summary';
+            ToolTip = 'Specifies, in three short sentences, the draft invoices, what is on hold and what the project manager must decide. Business Central writes it after creating the invoices; the agent sends it as its review request.';
+            Editable = false;
+        }
         field(20; "No. of Lines"; Integer)
         {
             Caption = 'No. of Lines';
