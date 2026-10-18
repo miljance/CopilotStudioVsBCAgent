@@ -1,0 +1,41 @@
+{
+  "id": "a55ea83b-fdac-44bf-bf28-7fcaa9ad3c2a",
+  "name": "Project Billing Agent",
+  "publisher": "Contoso Demo",
+  "version": "1.0.0.0",
+  "brief": "Business Central agent that prepares the monthly project invoices for review.",
+  "description": "On the first day of every month Business Central lists what each project can invoice for the past month: time and material usage, reached milestones, invoice caps. The Project Billing Agent decides line by line against the billing notes of the project, creates one draft sales invoice per customer and asks the project manager to review them. The same billing runs are available as APIs for a Copilot Studio agent. Demo for Directions EMEA 2026.",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "https://github.com/miljance/CopilotStudioVsBCAgent",
+  "logo": "",
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "1.0.0.0",
+  "application": "28.1.0.0",
+  "idRanges": [
+    {
+      "from": 50200,
+      "to": 50249
+    }
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "bee05cf2-5c25-45b3-9f92-208859e3b306",
+      "name": "Project Billing Agent Tests",
+      "publisher": "Contoso Demo"
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true,
+    "applyToDevExtension": false
+  },
+  "features": [
+    "NoImplicitWith"
+  ],
+  "resourceFolders": [".resources"],
+  "target": "Cloud"
+}

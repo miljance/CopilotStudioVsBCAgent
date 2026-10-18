@@ -1,0 +1,45 @@
+{
+  "id": "bee05cf2-5c25-45b3-9f92-208859e3b306",
+  "name": "Project Billing Agent Tests",
+  "publisher": "Contoso Demo",
+  "version": "1.0.0.0",
+  "brief": "Automated tests for the Project Billing Agent app.",
+  "description": "Tests for the billing proposal, the line decisions, the draft invoices and the monthly billing run of the Project Billing Agent.",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "a55ea83b-fdac-44bf-bf28-7fcaa9ad3c2a",
+      "name": "Project Billing Agent",
+      "publisher": "Contoso Demo",
+      "version": "1.0.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "28.1.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "1.0.0.0",
+  "application": "28.1.0.0",
+  "idRanges": [
+    {
+      "from": 50250,
+      "to": 50299
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith"
+  ],
+  "target": "Cloud"
+}
