@@ -81,6 +81,9 @@ page 50205 "PBA Billing Lines"
                 field("Decision Note"; Rec."Decision Note")
                 {
                 }
+                field("Decided By"; Rec."Decided By")
+                {
+                }
                 field("Decided By Person"; Rec."Decided By Person")
                 {
                     Visible = false;

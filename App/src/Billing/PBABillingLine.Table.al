@@ -2,6 +2,7 @@ namespace Contoso.ProjectBilling;
 
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Sales.Customer;
+using System.Security.AccessControl;
 
 /// <summary>
 /// One billable project planning line that Business Central proposes in a billing run, with what it found (Check), the
@@ -162,6 +163,10 @@ table 50203 "PBA Billing Line"
                 if PBASessionContext.IsAgentSession() then
                     CheckAgentMayDecide();
                 Rec."Decided By Person" := not PBASessionContext.IsAgentSession();
+                if Rec."Decided By Person" then
+                    Rec."Decided By" := GetCurrentUserName()
+                else
+                    Rec."Decided By" := '';
             end;
         }
         field(33; "Decision Note"; Text[250])
@@ -181,6 +186,13 @@ table 50203 "PBA Billing Line"
             ToolTip = 'Specifies the draft sales invoice that the line went to.';
             Editable = false;
         }
+        field(36; "Decided By"; Text[100])
+        {
+            Caption = 'Decided By';
+            ToolTip = 'Specifies the person who made the current decision, for example the project manager in Business Central or in the Teams approval card. Empty when an agent decided.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+        }
     }
 
     keys
@@ -196,6 +208,7 @@ table 50203 "PBA Billing Line"
 
     var
         AlreadyInvoicedErr: Label 'Line %1 is already on draft invoice %2. Change the invoice instead.', Comment = '%1 = line No., %2 = sales invoice No.';
+        PersonDecisionOnlyErr: Label 'Line %1: this way of deciding is only for decisions of a person, not for an agent.', Comment = '%1 = line No.';
         OnlyPersonMayInvoiceErr: Label 'Line %1 is flagged (%2). Only a person can decide to invoice it: set it to Hold and ask the project manager.', Comment = '%1 = line No., %2 = check, for example Exceeds Invoice Cap';
 
     procedure TestNotInvoiced()
@@ -211,6 +224,33 @@ table 50203 "PBA Billing Line"
     begin
         if (Rec.Decision = Rec.Decision::Invoice) and (Rec.Check <> Rec.Check::OK) then
             Error(OnlyPersonMayInvoiceErr, Rec."Line No.", Rec.Check);
+    end;
+
+    /// <summary>
+    /// A person's decision from outside Business Central, for example the project manager's answer on the Teams approval
+    /// card (billingLineDecisions API). Like a decision in the client it may invoice a flagged line. Never for agents:
+    /// no agent gets this API in its tools, and an agent session is refused here as well.
+    /// </summary>
+    procedure SetPersonDecision(NewDecision: Enum "PBA Billing Decision"; NewDecisionNote: Text[250]; DecidedBy: Text[100])
+    var
+        PBASessionContext: Codeunit "PBA Session Context";
+    begin
+        if PBASessionContext.IsAgentSession() then
+            Error(PersonDecisionOnlyErr, Rec."Line No.");
+        Rec.Validate(Decision, NewDecision);
+        Rec."Decision Note" := NewDecisionNote;
+        if DecidedBy <> '' then
+            Rec."Decided By" := DecidedBy;
+    end;
+
+    local procedure GetCurrentUserName(): Text[100]
+    var
+        User: Record User;
+    begin
+        if User.Get(UserSecurityId()) then
+            if User."Full Name" <> '' then
+                exit(CopyStr(User."Full Name", 1, 100));
+        exit(CopyStr(UserId(), 1, 100));
     end;
 
     procedure GetPlanningLine(var JobPlanningLine: Record "Job Planning Line"): Boolean

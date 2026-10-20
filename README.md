@@ -9,7 +9,7 @@ The demo for the Directions EMEA 2026 session **"Copilot Studio or Agent Designe
 
 All demo content is fictional (CRONUS US style). **Never add real customer, company or product names.**
 
-**Status (18 Oct 2026):** version 1.0.6.0 compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 28 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent ran the September demo end to end: 10 of 10 decisions as expected after the two-pass instructions (1.0.2), both draft invoices right.
+**Status (20 Oct 2026):** version 1.0.7.0 (Application 29.0, runtime 18.0) compiles against BC 29 without analyzer warnings and is published to the bc29 sandbox. All 32 tests pass in the company `CopilotStudioVsBCAgent`, and the demo data imports without errors. The agent ran the September demo end to end: 10 of 10 decisions as expected after the two-pass instructions (1.0.2), both draft invoices right.
 
 ## The scenario
 
@@ -67,18 +67,19 @@ Draft invoices: **Fabrikam Retail 12,040** (5 lines, 2 projects) and **Tailspin 
 
 | Entity | Operations | Notes |
 | --- | --- | --- |
-| `billingRuns` | GET, POST `{ "periodEnd": "2026-09-30" }`, DELETE, bound action `Microsoft.NAV.createDraftInvoices` | POST creates the run of that month with `handledBy` = Copilot Studio Agent (no BC agent task) and proposes the lines. `invoiceSummary` lists the draft invoices |
-| `billingLines` | GET, PATCH `decision`, `decisionNote` | Also as `billingRuns({id})/billingLines`. Setting `Invoice` on a line whose `check` is not OK is refused, as it is for the BC agent |
+| `billingRuns` | GET, POST `{ "periodEnd": "2026-09-30" }`, DELETE, bound action `Microsoft.NAV.createDraftInvoices` | POST creates the run of that month with `handledBy` = Copilot Studio Agent (no BC agent task) and proposes the lines. `reviewSummary` (three sentences) and `invoiceSummary` (numbers, projects) describe the draft invoices; `cardUrl` opens the Billing Run card |
+| `billingLines` | GET, PATCH `decision`, `decisionNote` | Also as `billingRuns({id})/billingLines`. Setting `Invoice` on a line whose `check` is not OK is refused, as it is for the BC agent. Shows `decidedByPerson` and `decidedBy` |
+| `billingLineDecisions` | GET, PATCH `decision`, `decisionNote`, `decidedBy` | **A person's decision**, for example the project manager's answer on the Teams approval card: may invoice a flagged line and marks it *Decided By Person*. **Not for agents:** keep it out of every MCP server configuration; only the step that handles the person's response calls it. Refused in a BC agent session |
 
 ## Tests
 
-28 tests, without an agent and without Copilot credits: `PBA Test Library` replaces the agent task dispatcher with `PBA Mock Task Dispatcher`, and `PBA Session Context` tells the code whether the session is an agent's. The tests use the company's own CRONUS setup and roll back.
+32 tests, without an agent and without Copilot credits: `PBA Test Library` replaces the agent task dispatcher with `PBA Mock Task Dispatcher`, and `PBA Session Context` tells the code whether the session is an agent's. The tests use the company's own CRONUS setup and roll back.
 
 | Codeunit | Covers |
 | --- | --- |
 | 50250 PBA Billing Proposal Tests | time & material usage up to the period end, planned and budget lines ignored, projects without billing method, milestones (reached, due, future, reached after the period), invoice cap and its recalculation after a hold, billing notes and discount |
 | 50251 PBA Billing Run Tests | a run becomes one agent task, no task when there is nothing to invoice, no run without an active agent, Copilot Studio runs, run numbers, the period of the monthly job |
-| 50252 PBA Billing Decision Tests | the agent and the API cannot invoice a flagged line, a person can, decisions are fixed once invoiced |
+| 50252 PBA Billing Decision Tests | the agent and the agent API cannot invoice a flagged line, a person can (in the client and through billingLineDecisions), the person API is refused for agents and for invoiced lines, Decided By names the person, decisions are fixed once invoiced |
 | 50253 PBA Draft Invoice Tests | one invoice per customer across projects, held lines stay in the project, undecided lines block the invoices, a second round adds to the customer's invoice, the short review summary |
 | 50254 PBA Agent Per Company Tests | one agent per company: an agent of another company does not block a new one |
 

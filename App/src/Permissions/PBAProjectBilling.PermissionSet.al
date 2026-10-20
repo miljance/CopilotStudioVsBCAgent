@@ -21,6 +21,7 @@ permissionset 50200 "PBA Project Billing"
         page "PBA Start Billing Run" = X,
         page "PBA Billing Runs API" = X,
         page "PBA Billing Lines API" = X,
+        page "PBA Billing Line Decisions API" = X,
         codeunit "PBA Billing Run Mgt." = X,
         codeunit "PBA Billing Proposal" = X,
         codeunit "PBA Draft Invoices" = X,

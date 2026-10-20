@@ -1,7 +1,8 @@
 namespace Contoso.ProjectBilling;
 
 /// <summary>
-/// Billing lines for an agent outside Business Central. Only decision and decisionNote can be changed. Like the Project
+/// Billing lines for an agent outside Business Central. Only decision and decisionNote can be changed. A person's
+/// decision (for example from a Teams approval card) goes through billingLineDecisions instead. Like the Project
 /// Billing Agent, a caller of this API may set Invoice only on lines whose check is OK: flagged lines are decided by a
 /// person on the Billing Run card.
 /// /api/contoso/projectBilling/v1.0/companies({id})/billingLines
@@ -142,6 +143,7 @@ page 50207 "PBA Billing Lines API"
                     begin
                         Rec.CheckAgentMayDecide();
                         Rec."Decided By Person" := false;
+                        Rec."Decided By" := '';
                     end;
                 }
                 field(decisionNote; Rec."Decision Note")
@@ -151,6 +153,16 @@ page 50207 "PBA Billing Lines API"
                 field(salesInvoiceNumber; Rec."Sales Invoice No.")
                 {
                     Caption = 'Sales Invoice No.';
+                    Editable = false;
+                }
+                field(decidedByPerson; Rec."Decided By Person")
+                {
+                    Caption = 'Decided By Person';
+                    Editable = false;
+                }
+                field(decidedBy; Rec."Decided By")
+                {
+                    Caption = 'Decided By';
                     Editable = false;
                 }
             }

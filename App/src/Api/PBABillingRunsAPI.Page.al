@@ -92,6 +92,11 @@ page 50206 "PBA Billing Runs API"
                     Caption = 'Review Summary';
                     Editable = false;
                 }
+                field(cardUrl; CardUrl)
+                {
+                    Caption = 'Card URL';
+                    Editable = false;
+                }
                 part(billingLines; "PBA Billing Lines API")
                 {
                     Caption = 'Billing Lines';
@@ -104,7 +109,14 @@ page 50206 "PBA Billing Runs API"
     }
 
     var
+        CardUrl: Text;
         PeriodEndRequiredErr: Label 'Specify periodEnd, a date in the month to invoice.';
+
+    trigger OnAfterGetRecord()
+    begin
+        // For an "Open in Business Central" button, for example on the Teams approval card.
+        CardUrl := GetUrl(ClientType::Web, CompanyName(), ObjectType::Page, Page::"PBA Billing Run", Rec);
+    end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     var
