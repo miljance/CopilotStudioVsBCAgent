@@ -15,6 +15,7 @@ codeunit 50261 "PBA Mock Task Dispatcher" implements "PBA ITask Dispatcher"
         SentTitle: Text;
         SentMessage: Text;
         SendCount: Integer;
+        StoppedTaskId: BigInteger;
 
     procedure Reset(NewAvailable: Boolean)
     begin
@@ -23,6 +24,7 @@ codeunit 50261 "PBA Mock Task Dispatcher" implements "PBA ITask Dispatcher"
         SentTitle := '';
         SentMessage := '';
         SendCount := 0;
+        StoppedTaskId := 0;
     end;
 
     procedure IsAvailable(): Boolean
@@ -37,6 +39,16 @@ codeunit 50261 "PBA Mock Task Dispatcher" implements "PBA ITask Dispatcher"
         SentTitle := TaskTitle;
         SentMessage := MessageText;
         exit(4711);
+    end;
+
+    procedure StopBillingRunTask(AgentTaskId: BigInteger)
+    begin
+        StoppedTaskId := AgentTaskId;
+    end;
+
+    procedure GetStoppedTaskId(): BigInteger
+    begin
+        exit(StoppedTaskId);
     end;
 
     procedure GetSendCount(): Integer

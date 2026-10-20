@@ -45,4 +45,19 @@ codeunit 50209 "PBA Agent Task Dispatcher" implements "PBA ITask Dispatcher"
         PBAAgentKPI.AddBillingRunSent(AgentUserSecurityId);
         exit(AgentTaskRecord.ID);
     end;
+
+    procedure StopBillingRunTask(AgentTaskId: BigInteger)
+    var
+        AgentTaskRecord: Record "Agent Task";
+        AgentTask: Codeunit "Agent Task";
+    begin
+        if AgentTaskId = 0 then
+            exit;
+        if not AgentTaskRecord.Get(AgentTaskId) then
+            exit;
+        if AgentTaskRecord.Status in [AgentTaskRecord.Status::Completed, AgentTaskRecord.Status::"Stopped by User",
+                                      AgentTaskRecord.Status::"Stopped by System", AgentTaskRecord.Status::Stopping] then
+            exit;
+        AgentTask.StopTask(AgentTaskId, false);
+    end;
 }

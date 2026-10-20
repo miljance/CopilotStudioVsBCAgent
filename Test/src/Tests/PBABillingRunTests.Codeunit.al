@@ -3,6 +3,7 @@ namespace Contoso.ProjectBilling.Test;
 using Contoso.ProjectBilling;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Planning;
+using Microsoft.Sales.Document;
 using System.TestLibraries.Utilities;
 
 codeunit 50251 "PBA Billing Run Tests"
@@ -128,6 +129,41 @@ codeunit 50251 "PBA Billing Run Tests"
         // [THEN] It is October
         Assert.AreEqual(DMY2Date(31, 10, 2026), PBAMonthlyBillingJob.GetPeriodToInvoice(DMY2Date(1, 11, 2026)), '1 November');
         Assert.AreEqual(DMY2Date(31, 12, 2026), PBAMonthlyBillingJob.GetPeriodToInvoice(DMY2Date(1, 1, 2027)), '1 January');
+    end;
+
+    [Test]
+    procedure ResetDeletesRunsDraftInvoicesAndStopsTasks()
+    var
+        PBABillingRun: Record "PBA Billing Run";
+        PBABillingLine: Record "PBA Billing Line";
+        SalesHeader: Record "Sales Header";
+        JobPlanningLine: Record "Job Planning Line";
+        PBABillingRunMgt: Codeunit "PBA Billing Run Mgt.";
+        PBADraftInvoices: Codeunit "PBA Draft Invoices";
+        InvoiceNo: Code[20];
+    begin
+        // [GIVEN] A run for the agent (task 4711) whose line is on a draft invoice
+        PBATestLibrary.Initialize();
+        CreateProjectWithUsage(DMY2Date(15, 9, 2026));
+        PBABillingRunMgt.StartRun(DMY2Date(1, 9, 2026), Enum::"PBA Billing Handler"::"Project Billing Agent", PBABillingRun);
+        PBABillingLine.SetRange("Billing Run No.", PBABillingRun."No.");
+        PBABillingLine.FindFirst();
+        PBABillingLine.Validate(Decision, PBABillingLine.Decision::Invoice);
+        PBABillingLine.Modify(true);
+        PBADraftInvoices.CreateDraftInvoices(PBABillingRun);
+        PBABillingLine.Get(PBABillingLine."Billing Run No.", PBABillingLine."Line No.");
+        InvoiceNo := PBABillingLine."Sales Invoice No.";
+        Assert.AreNotEqual('', InvoiceNo, 'Precondition: the line is on a draft invoice');
+
+        // [WHEN] The runs are reset
+        Assert.AreEqual(1, PBABillingRunMgt.ResetRuns(), 'Runs deleted');
+
+        // [THEN] No run is left, the draft invoice is gone, the usage is to invoice again and the agent task is stopped
+        Assert.IsTrue(PBABillingRun.IsEmpty(), 'No run left');
+        Assert.IsFalse(SalesHeader.Get(SalesHeader."Document Type"::Invoice, InvoiceNo), 'Draft invoice deleted');
+        PBABillingLine.GetPlanningLine(JobPlanningLine);
+        Assert.AreEqual(2, JobPlanningLine."Qty. to Transfer to Invoice", 'Usage to invoice again');
+        Assert.IsTrue(PBAMockTaskDispatcher.GetStoppedTaskId() = 4711, 'Agent task stopped');
     end;
 
     local procedure CreateProjectWithUsage(UsageDate: Date)

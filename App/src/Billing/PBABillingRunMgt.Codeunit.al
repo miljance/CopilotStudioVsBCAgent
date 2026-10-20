@@ -1,5 +1,7 @@
 namespace Contoso.ProjectBilling;
 
+using Microsoft.Sales.Document;
+
 /// <summary>
 /// Creates billing runs. A run covers one calendar month; its No. names the month (BR-2026-09, a second run of the
 /// same month BR-2026-09-2). Business Central proposes the lines at once. A run for the Project Billing Agent becomes an
@@ -14,6 +16,7 @@ codeunit 50211 "PBA Billing Run Mgt."
         TaskTitleTxt: Label 'Monthly billing %1', Comment = '%1 = billing run No.';
         TaskMessageTxt: Label 'Prepare the draft invoices of billing run %1 (%2 to %3).', Comment = '%1 = billing run No., %2 = period start, %3 = period end';
         RunNoTok: Label 'BR-%1', Locked = true;
+        InvoiceNotOpenErr: Label 'Draft invoice %1 is released. Reopen it first; nothing was deleted.', Comment = '%1 = sales invoice No.';
 
     /// <summary>
     /// Creates the run for the month of DateInPeriod and proposes its lines. A run for the Project Billing Agent is sent
@@ -45,6 +48,43 @@ codeunit 50211 "PBA Billing Run Mgt."
                 StrSubstNo(TaskMessageTxt, PBABillingRun."No.", Format(PBABillingRun."Period Start", 0, 9), Format(PBABillingRun."Period End", 0, 9)));
             PBABillingRun.Modify();
         end;
+    end;
+
+    /// <summary>
+    /// Puts the demo back to the start: deletes every billing run with its lines, deletes the draft sales invoices the runs
+    /// created (deleting a draft invoice makes its project lines "to invoice" again), and stops the agent tasks that can
+    /// still run. Posted invoices are never touched. Returns the number of runs deleted.
+    /// </summary>
+    procedure ResetRuns() RunsDeleted: Integer
+    var
+        PBABillingRun: Record "PBA Billing Run";
+        PBABillingLine: Record "PBA Billing Line";
+        SalesHeader: Record "Sales Header";
+        PBADispatcherProvider: Codeunit "PBA Dispatcher Provider";
+        Dispatcher: Interface "PBA ITask Dispatcher";
+        InvoiceNos: List of [Code[20]];
+        InvoiceNo: Code[20];
+    begin
+        Dispatcher := PBADispatcherProvider.GetDispatcher();
+        PBABillingLine.SetFilter("Sales Invoice No.", '<>%1', '');
+        if PBABillingLine.FindSet() then
+            repeat
+                if not InvoiceNos.Contains(PBABillingLine."Sales Invoice No.") then
+                    InvoiceNos.Add(PBABillingLine."Sales Invoice No.");
+            until PBABillingLine.Next() = 0;
+        foreach InvoiceNo in InvoiceNos do
+            if SalesHeader.Get(SalesHeader."Document Type"::Invoice, InvoiceNo) then begin
+                if SalesHeader.Status <> SalesHeader.Status::Open then
+                    Error(InvoiceNotOpenErr, InvoiceNo);
+                SalesHeader.Delete(true);
+            end;
+
+        if PBABillingRun.FindSet() then
+            repeat
+                Dispatcher.StopBillingRunTask(PBABillingRun."Agent Task ID");
+            until PBABillingRun.Next() = 0;
+        RunsDeleted := PBABillingRun.Count();
+        PBABillingRun.DeleteAll(true);
     end;
 
     procedure CreateRun(DateInPeriod: Date; HandledBy: Enum "PBA Billing Handler"; var PBABillingRun: Record "PBA Billing Run")

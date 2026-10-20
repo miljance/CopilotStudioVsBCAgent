@@ -55,19 +55,21 @@ page 50263 "PBA Agent Diagnostics API"
     var
         AgentAccessControl: Record "Agent Access Control";
         AccessControl: Record "Access Control";
+        UserAccessTok: Label '%1 [%2] configure=%3; ', Locked = true;
+        PermissionTok: Label '%1 [%2]; ', Locked = true;
     begin
         UserAccess := '';
         AgentAccessControl.SetRange("Agent User Security ID", Rec."User Security ID");
         if AgentAccessControl.FindSet() then
             repeat
-                UserAccess += StrSubstNo('%1 [%2] configure=%3; ', AgentAccessControl."User Security ID", AgentAccessControl."Company Name", AgentAccessControl."Can Configure Agent");
+                UserAccess += StrSubstNo(UserAccessTok, AgentAccessControl."User Security ID", AgentAccessControl."Company Name", AgentAccessControl."Can Configure Agent");
             until AgentAccessControl.Next() = 0;
 
         Permissions := '';
         AccessControl.SetRange("User Security ID", Rec."User Security ID");
         if AccessControl.FindSet() then
             repeat
-                Permissions += StrSubstNo('%1 [%2]; ', AccessControl."Role ID", AccessControl."Company Name");
+                Permissions += StrSubstNo(PermissionTok, AccessControl."Role ID", AccessControl."Company Name");
             until AccessControl.Next() = 0;
     end;
 }

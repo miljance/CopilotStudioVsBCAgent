@@ -89,6 +89,23 @@ page 50203 "PBA Billing Runs"
                         Page.Run(Page::"Job Queue Entry Card", JobQueueEntry);
                 end;
             }
+            action(ResetBillingRuns)
+            {
+                Caption = 'Reset Billing Runs';
+                Image = Restore;
+                ToolTip = 'Delete all billing runs and the draft invoices they created, so the same month can be invoiced again (for a new demo or test). Agent tasks of the runs that can still run are stopped. Posted invoices are not touched.';
+
+                trigger OnAction()
+                var
+                    PBABillingRunMgt: Codeunit "PBA Billing Run Mgt.";
+                    ResetQst: Label 'Delete all %1 billing runs and their draft invoices? The project lines become "to invoice" again.', Comment = '%1 = number of billing runs';
+                    ResetDoneMsg: Label '%1 billing runs deleted.', Comment = '%1 = number of billing runs';
+                begin
+                    if not Confirm(ResetQst, false, Rec.Count()) then
+                        exit;
+                    Message(ResetDoneMsg, PBABillingRunMgt.ResetRuns());
+                end;
+            }
         }
         area(Promoted)
         {
