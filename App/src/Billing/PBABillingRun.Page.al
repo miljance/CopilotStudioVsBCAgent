@@ -56,6 +56,7 @@ page 50204 "PBA Billing Run"
             group(Review)
             {
                 Caption = 'Review Summary';
+                Visible = not IsAgentSession;
 
                 field(ReviewSummary; ReviewSummaryHtml)
                 {
@@ -70,6 +71,7 @@ page 50204 "PBA Billing Run"
             group(Invoices)
             {
                 Caption = 'Draft Invoices';
+                Visible = not IsAgentSession;
 
                 field(InvoiceSummary; InvoiceSummaryHtml)
                 {
@@ -79,6 +81,22 @@ page 50204 "PBA Billing Run"
                     MultiLine = true;
                     ExtendedDatatype = RichContent;
                     Editable = false;
+                }
+            }
+            // The agent copies the Review Summary into its review request. It gets the plain text: from the rich content
+            // above it copied the HTML (task 150).
+            group(SummariesForAgent)
+            {
+                Caption = 'Summaries';
+                Visible = IsAgentSession;
+
+                field("Review Summary"; Rec."Review Summary")
+                {
+                    MultiLine = true;
+                }
+                field("Invoice Summary"; Rec."Invoice Summary")
+                {
+                    MultiLine = true;
                 }
             }
             part(Lines; "PBA Billing Lines")
@@ -141,6 +159,14 @@ page 50204 "PBA Billing Run"
     var
         ReviewSummaryHtml: Text;
         InvoiceSummaryHtml: Text;
+        IsAgentSession: Boolean;
+
+    trigger OnOpenPage()
+    var
+        PBASessionContext: Codeunit "PBA Session Context";
+    begin
+        IsAgentSession := PBASessionContext.IsAgentSession();
+    end;
 
     trigger OnAfterGetRecord()
     begin
