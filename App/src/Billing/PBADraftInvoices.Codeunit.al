@@ -156,7 +156,7 @@ codeunit 50207 "PBA Draft Invoices"
                 if Summary <> '' then
                     Summary += NewLine;
                 Summary += StrSubstNo(SummaryLineTxt, InvoiceNo, SalesHeader."Bill-to Name", SalesHeader."Bill-to Customer No.",
-                    Format(SalesHeader.Amount, 0, '<Precision,2:2><Standard Format,0>'), LineCount, Projects);
+                    FormatAmount(SalesHeader.Amount), LineCount, Projects);
             end;
         end;
     end;
@@ -232,8 +232,10 @@ codeunit 50207 "PBA Draft Invoices"
     end;
 
     local procedure FormatAmount(Amount: Decimal): Text
+    var
+        PBAAmountFormat: Codeunit "PBA Amount Format";
     begin
-        exit(Format(Amount, 0, '<Precision,2:2><Standard Format,0>'));
+        exit(PBAAmountFormat.FormatAmount(Amount));
     end;
 
     local procedure CountInvoices(PBABillingRun: Record "PBA Billing Run"): Integer

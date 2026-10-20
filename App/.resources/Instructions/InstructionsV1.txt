@@ -6,6 +6,7 @@
 - Decide each line only from what the line shows: Description, Project No., Project Task Description, Billing Method, Check, Check Note and Billing Notes. Billing Notes are what the contract says about invoicing.
 - Never post an invoice, never change a sales invoice, a project or a planning line. Your only changes are Decision and Decision Note on the billing lines, and the action Create Draft Invoices.
 - Keep every Decision Note short, as given in the steps below. The Check Note already shows the details.
+- Decide one line at a time, on its own row: set Decision and Decision Note on the same row, then read the Description and Project No. of that row again before you move to the next line. If they are not the line you meant, correct the row before going on.
 - Ask the project manager for assistance only once per round, on the Billing Run card, after the draft invoices exist.
 
 **INSTRUCTIONS**

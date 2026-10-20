@@ -94,6 +94,7 @@ codeunit 50206 "PBA Billing Proposal"
         Job: Record Job;
         PBABillingLine: Record "PBA Billing Line";
         WorkLine: Record "PBA Billing Line";
+        PBAAmountFormat: Codeunit "PBA Amount Format";
         OldCheck: Enum "PBA Billing Check";
         OldNote: Text[250];
         AlreadyTransferred: Decimal;
@@ -126,9 +127,9 @@ codeunit 50206 "PBA Billing Proposal"
                 if CapExceeded then begin
                     WorkLine.Check := WorkLine.Check::"Exceeds Invoice Cap";
                     WorkLine."Check Note" := CopyStr(StrSubstNo(ExceedsCapTxt,
-                        Format(Job."PBA Invoice Cap", 0, '<Precision,2:2><Standard Format,0>'),
-                        Format(AlreadyTransferred, 0, '<Precision,2:2><Standard Format,0>'),
-                        Format(RunningTotal, 0, '<Precision,2:2><Standard Format,0>')), 1, MaxStrLen(WorkLine."Check Note"));
+                        PBAAmountFormat.FormatAmount(Job."PBA Invoice Cap"),
+                        PBAAmountFormat.FormatAmount(AlreadyTransferred),
+                        PBAAmountFormat.FormatAmount(RunningTotal)), 1, MaxStrLen(WorkLine."Check Note"));
                 end else begin
                     WorkLine.Check := WorkLine.Check::OK;
                     WorkLine."Check Note" := '';

@@ -52,12 +52,6 @@ page 50205 "PBA Billing Lines"
                 {
                     Editable = Rec."Sales Invoice No." = '';
                     StyleExpr = RowStyle;
-
-                    trigger OnValidate()
-                    begin
-                        // A decision can change the invoice cap check of the project's other lines.
-                        CurrPage.Update(true);
-                    end;
                 }
                 field("Decision Note"; Rec."Decision Note")
                 {
