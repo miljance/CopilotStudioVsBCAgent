@@ -194,6 +194,34 @@ codeunit 50252 "PBA Billing Decision Tests"
         Assert.AreNotEqual('', PBABillingLine."Decided By", 'Decided By after the person');
     end;
 
+    [Test]
+    procedure RowStyleShowsWhatNeedsAPerson()
+    var
+        PBABillingLine: Record "PBA Billing Line";
+    begin
+        // [GIVEN] Lines in every state the project manager has to tell apart
+        // [THEN] Undecided: blue; held and waiting for a person (cap, please check): red; held and settled (contract,
+        //        milestone): grey; invoiced over a flag by a person: yellow; invoiced and OK: no style
+        Assert.AreEqual('StrongAccent', StyleOf(PBABillingLine.Check::OK, PBABillingLine.Decision::" ", '', false), 'Undecided');
+        Assert.AreEqual('Unfavorable', StyleOf(PBABillingLine.Check::"Exceeds Invoice Cap", PBABillingLine.Decision::Hold, 'Over the invoice cap.', false), 'Over the cap');
+        Assert.AreEqual('Unfavorable', StyleOf(PBABillingLine.Check::OK, PBABillingLine.Decision::Hold, 'Please check: the PO number.', false), 'Please check');
+        Assert.AreEqual('Subordinate', StyleOf(PBABillingLine.Check::OK, PBABillingLine.Decision::Hold, 'Not billed per contract: travel time.', false), 'Per contract');
+        Assert.AreEqual('Subordinate', StyleOf(PBABillingLine.Check::"Milestone Not Reached", PBABillingLine.Decision::Hold, 'Milestone not reached.', false), 'Milestone');
+        Assert.AreEqual('Ambiguous', StyleOf(PBABillingLine.Check::"Exceeds Invoice Cap", PBABillingLine.Decision::Invoice, '', true), 'Invoiced by a person over the cap');
+        Assert.AreEqual('Standard', StyleOf(PBABillingLine.Check::OK, PBABillingLine.Decision::Invoice, '', false), 'Invoiced');
+    end;
+
+    local procedure StyleOf(Check: Enum "PBA Billing Check"; Decision: Enum "PBA Billing Decision"; DecisionNote: Text[250]; DecidedByPerson: Boolean): Text
+    var
+        PBABillingLine: Record "PBA Billing Line";
+    begin
+        PBABillingLine.Check := Check;
+        PBABillingLine.Decision := Decision;
+        PBABillingLine."Decision Note" := DecisionNote;
+        PBABillingLine."Decided By Person" := DecidedByPerson;
+        exit(PBABillingLine.GetRowStyle());
+    end;
+
     local procedure CreateRunWithCapExceeded(var PBABillingRun: Record "PBA Billing Run"; var PBABillingLine: Record "PBA Billing Line")
     var
         Job: Record Job;

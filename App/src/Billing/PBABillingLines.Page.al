@@ -3,6 +3,11 @@ namespace Contoso.ProjectBilling;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// The lines of a billing run. The whole row is colored by what it needs (see PBA Billing Line.GetRowStyle): blue
+/// undecided, red waiting for a person, grey held and settled, yellow invoiced by a person over a flag. Decision and
+/// Decision Note come right after the description, so a held line is seen without scrolling.
+/// </summary>
 page 50205 "PBA Billing Lines"
 {
     PageType = ListPart;
@@ -21,56 +26,32 @@ page 50205 "PBA Billing Lines"
                 field("Line No."; Rec."Line No.")
                 {
                     Visible = false;
+                    StyleExpr = RowStyle;
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
+                    StyleExpr = RowStyle;
                 }
                 field("Customer Name"; Rec."Customer Name")
                 {
+                    StyleExpr = RowStyle;
                 }
                 field("Job No."; Rec."Job No.")
                 {
-                }
-                field("Billing Method"; Rec."Billing Method")
-                {
-                }
-                field("Job Task No."; Rec."Job Task No.")
-                {
-                }
-                field("Job Task Description"; Rec."Job Task Description")
-                {
-                }
-                field("Planning Date"; Rec."Planning Date")
-                {
-                }
-                field("No."; Rec."No.")
-                {
+                    StyleExpr = RowStyle;
                 }
                 field(Description; Rec.Description)
                 {
-                }
-                field(Quantity; Rec.Quantity)
-                {
-                }
-                field("Unit of Measure Code"; Rec."Unit of Measure Code")
-                {
-                }
-                field("Unit Price"; Rec."Unit Price")
-                {
+                    StyleExpr = RowStyle;
                 }
                 field(Amount; Rec.Amount)
                 {
-                }
-                field(Check; Rec.Check)
-                {
-                    StyleExpr = CheckStyle;
-                }
-                field("Check Note"; Rec."Check Note")
-                {
+                    StyleExpr = RowStyle;
                 }
                 field(Decision; Rec.Decision)
                 {
                     Editable = Rec."Sales Invoice No." = '';
+                    StyleExpr = RowStyle;
 
                     trigger OnValidate()
                     begin
@@ -80,16 +61,24 @@ page 50205 "PBA Billing Lines"
                 }
                 field("Decision Note"; Rec."Decision Note")
                 {
+                    StyleExpr = RowStyle;
+                }
+                field(Check; Rec.Check)
+                {
+                    StyleExpr = RowStyle;
+                }
+                field("Check Note"; Rec."Check Note")
+                {
+                    StyleExpr = RowStyle;
                 }
                 field("Decided By"; Rec."Decided By")
                 {
-                }
-                field("Decided By Person"; Rec."Decided By Person")
-                {
-                    Visible = false;
+                    StyleExpr = RowStyle;
                 }
                 field("Sales Invoice No."; Rec."Sales Invoice No.")
                 {
+                    StyleExpr = RowStyle;
+
                     trigger OnDrillDown()
                     var
                         SalesHeader: Record "Sales Header";
@@ -98,8 +87,46 @@ page 50205 "PBA Billing Lines"
                             Page.Run(Page::"Sales Invoice", SalesHeader);
                     end;
                 }
+                field("Billing Method"; Rec."Billing Method")
+                {
+                    StyleExpr = RowStyle;
+                }
+                field("Job Task No."; Rec."Job Task No.")
+                {
+                    StyleExpr = RowStyle;
+                }
+                field("Job Task Description"; Rec."Job Task Description")
+                {
+                    StyleExpr = RowStyle;
+                }
+                field("Planning Date"; Rec."Planning Date")
+                {
+                    StyleExpr = RowStyle;
+                }
+                field("No."; Rec."No.")
+                {
+                    StyleExpr = RowStyle;
+                }
+                field(Quantity; Rec.Quantity)
+                {
+                    StyleExpr = RowStyle;
+                }
+                field("Unit of Measure Code"; Rec."Unit of Measure Code")
+                {
+                    StyleExpr = RowStyle;
+                }
+                field("Unit Price"; Rec."Unit Price")
+                {
+                    StyleExpr = RowStyle;
+                }
+                field("Decided By Person"; Rec."Decided By Person")
+                {
+                    Visible = false;
+                    StyleExpr = RowStyle;
+                }
                 field("Billing Notes"; Rec."Billing Notes")
                 {
+                    StyleExpr = RowStyle;
                 }
             }
         }
@@ -127,13 +154,10 @@ page 50205 "PBA Billing Lines"
     }
 
     var
-        CheckStyle: Text;
+        RowStyle: Text;
 
     trigger OnAfterGetRecord()
     begin
-        if Rec.Check = Rec.Check::OK then
-            CheckStyle := 'Favorable'
-        else
-            CheckStyle := 'Attention';
+        RowStyle := Rec.GetRowStyle();
     end;
 }

@@ -208,6 +208,7 @@ table 50203 "PBA Billing Line"
 
     var
         AlreadyInvoicedErr: Label 'Line %1 is already on draft invoice %2. Change the invoice instead.', Comment = '%1 = line No., %2 = sales invoice No.';
+        PleaseCheckTok: Label 'Please check:', Locked = true;
         PersonDecisionOnlyErr: Label 'Line %1: this way of deciding is only for decisions of a person, not for an agent.', Comment = '%1 = line No.';
         OnlyPersonMayInvoiceErr: Label 'Line %1 is flagged (%2). Only a person can decide to invoice it: set it to Hold and ask the project manager.', Comment = '%1 = line No., %2 = check, for example Exceeds Invoice Cap';
 
@@ -241,6 +242,40 @@ table 50203 "PBA Billing Line"
         Rec."Decision Note" := NewDecisionNote;
         if DecidedBy <> '' then
             Rec."Decided By" := DecidedBy;
+    end;
+
+    /// <summary>
+    /// The style of the whole row on the Billing Lines part, so the project manager sees at a glance what needs them:
+    /// StrongAccent (blue) undecided; Unfavorable (red) held and waiting for a person (over the cap, or held to be
+    /// checked); Subordinate (grey) held and settled (not billed per contract, milestone not reached); Ambiguous (yellow)
+    /// invoiced by a person although Business Central flagged it; Standard otherwise.
+    /// </summary>
+    procedure GetRowStyle(): Text
+    begin
+        case Rec.Decision of
+            Rec.Decision::" ":
+                exit('StrongAccent');
+            Rec.Decision::Hold:
+                if NeedsPersonDecision() then
+                    exit('Unfavorable')
+                else
+                    exit('Subordinate');
+            Rec.Decision::Invoice:
+                if (Rec.Check <> Rec.Check::OK) and Rec."Decided By Person" then
+                    exit('Ambiguous');
+        end;
+        exit('Standard');
+    end;
+
+    /// <summary>
+    /// A held line that only a person can settle: over the invoice cap, or held by the agent to be checked. The same rule
+    /// decides what the Review Summary lists under "Your decision".
+    /// </summary>
+    procedure NeedsPersonDecision(): Boolean
+    begin
+        if Rec.Decision <> Rec.Decision::Hold then
+            exit(false);
+        exit((Rec.Check = Rec.Check::"Exceeds Invoice Cap") or Rec."Decision Note".StartsWith(PleaseCheckTok));
     end;
 
     local procedure GetCurrentUserName(): Text[100]
