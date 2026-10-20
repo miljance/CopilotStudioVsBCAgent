@@ -9,6 +9,9 @@ this order with tools/Import-DemoData.ps1, after the app is installed (the proje
   PBA-2-MASTER    resources and customers
   PBA-3-PROJECTS  four projects with tasks, budget lines and the fixed price milestones
   PBA-4-USAGE     the project journal lines (usage) for September and October; post them in the journal
+  PBA-5-OCTOBER   100 more usage lines in October, for the volume comparison; post them once, after PBA-4-USAGE
+
+It also writes demo/PBA-5-OCTOBER-expected.csv: the decision every October line should get.
 
 All names are fictional (CRONUS US style). The company must have the CRONUS US sample data: posting groups DOMESTIC
 and SERVICES, tax groups, project posting group SETTING UP and the journal template PROJECT.
@@ -51,7 +54,7 @@ def write_package(code, name, tables):
            + ''.join(tables) + '</DataList>')
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, f'{code}.rapidstart')
-    with gzip.open(path, 'wb') as f:
+    with gzip.GzipFile(path, 'wb', mtime=0) as f:  # no timestamp: the same data gives the same file
         f.write(xml.encode('utf-16'))
     print(path)
 
@@ -96,6 +99,8 @@ TRAINING_NOTES = ('Time and material, invoiced monthly. Training hours are bille
 TAILSPIN_NOTES = ('Fixed price 40,000 USD in three milestones: 30 % at design sign-off, 50 % at go-live, 20 % after four '
                   'weeks of hypercare. Hours are not billed separately.')
 PROSEWARE_NOTES = 'Time and material, invoiced monthly at the resource rates.'
+SUPPORT_NOTES = ('Time and material, invoiced monthly at the resource rates. Internal handover meetings of our support '
+                 'team are not billed. Fixes of defects in our own deliveries (warranty) are not billed.')
 
 jobs = [
     # No., Description, Sell-to (also Bill-to: RapidStart does not fill it from Sell-to), Posting group, Status (2 = Open), Starting, Ending, Billing method, Cap, Notes
@@ -103,6 +108,7 @@ jobs = [
     ('PRJ-1002', 'Fabrikam store manager training', 'C91010', 'SETTING UP', 2, '2026-09-01', '2026-10-31', 1, 0, TRAINING_NOTES),
     ('PRJ-2001', 'Tailspin warehouse redesign', 'C91020', 'SETTING UP', 2, '2026-08-17', '2026-12-18', 2, 40000, TAILSPIN_NOTES),
     ('PRJ-3001', 'Proseware finance health check', 'C91030', 'SETTING UP', 2, '2026-10-01', '2026-10-31', 1, 0, PROSEWARE_NOTES),
+    ('PRJ-1003', 'Fabrikam store support desk', 'C91010', 'SETTING UP', 2, '2026-10-01', '2027-03-31', 1, 0, SUPPORT_NOTES),
 ]
 tasks = [
     # Job, Task, Description, Type (0 = Posting), Posting group, Milestone reached, Reached date
@@ -114,6 +120,9 @@ tasks = [
     ('PRJ-2001', '200', 'Go-live', 0, 'SETTING UP', 0, ''),
     ('PRJ-2001', '300', 'Hypercare', 0, 'SETTING UP', 0, ''),
     ('PRJ-3001', '1010', 'Health check', 0, 'SETTING UP', 0, ''),
+    ('PRJ-1003', '1010', 'Support', 0, 'SETTING UP', 0, ''),
+    ('PRJ-1003', '1020', 'Bug fixing', 0, 'SETTING UP', 0, ''),
+    ('PRJ-1003', '1030', 'Coordination', 0, 'SETTING UP', 0, ''),
 ]
 BUDGET, BILLABLE = 0, 1
 planning = [
@@ -129,6 +138,9 @@ planning = [
     ('PRJ-2001', '300', 10000, '2026-11-01', BUDGET, 0, 'R-CONSULT', 'Hypercare, budget', 40, 'HOUR'),
     ('PRJ-2001', '300', 20000, '2026-11-30', BILLABLE, 0, 'R-MILESTONE', 'Milestone 3: end of hypercare (20 %)', 20, 'PERCENT'),
     ('PRJ-3001', '1010', 10000, '2026-10-01', BUDGET, 0, 'R-CONSULT', 'Health check, budget', 24, 'HOUR'),
+    ('PRJ-1003', '1010', 10000, '2026-10-01', BUDGET, 0, 'R-CONSULT', 'Support, budget', 120, 'HOUR'),
+    ('PRJ-1003', '1020', 10000, '2026-10-01', BUDGET, 0, 'R-DEV', 'Bug fixing, budget', 60, 'HOUR'),
+    ('PRJ-1003', '1030', 10000, '2026-10-01', BUDGET, 0, 'R-PM', 'Coordination, budget', 12, 'HOUR'),
 ]
 write_package('PBA-3-PROJECTS', 'Project Billing Agent demo - 3 projects, tasks and planning lines', [
     table_xml('Job', 167,
@@ -171,3 +183,75 @@ write_package('PBA-4-USAGE', 'Project Billing Agent demo - 4 usage to post (proj
                ('Description', 'v'), ('Quantity', 'v'), ('Line Type', 'v')],
               [('PROJECT', 'BILLING') + row for row in usage]),
 ])
+
+# --- 5. October volume ----------------------------------------------------------------------------------------------
+# 100 usage lines in October, to compare how the agents scale with the number of lines. Deterministic: same file on every
+# build. The decision each line should get is written to demo/PBA-5-OCTOBER-expected.csv.
+import csv
+import datetime
+
+PRICE = {'R-CONSULT': 150, 'R-DEV': 140, 'R-PM': 160}
+WEEKDAYS = [d for d in (datetime.date(2026, 10, 1) + datetime.timedelta(days=i) for i in range(31)) if d.weekday() < 5]
+
+SUPPORT_TOPICS = ['POS terminal offline', 'receipt printer not printing', 'price update not on the shelf labels',
+                  'gift card balance wrong', 'loyalty points not booked', 'end-of-day report missing',
+                  'new cashier user', 'scanner pairing', 'return without receipt', 'promotion not applied']
+STORES = ['store 3', 'store 5', 'store 7', 'store 12', 'store 14']
+HEALTH_TOPICS = ['interview with the controller', 'month-end close review', 'chart of accounts review',
+                 'bank reconciliation review', 'fixed assets review', 'VAT setup review', 'dimension usage review',
+                 'approval workflow review', 'report pack review', 'findings workshop']
+
+october = []   # (Job, Task, Resource, Description, Quantity, expected decision, reason)
+for i in range(50):
+    topic, store = SUPPORT_TOPICS[i % len(SUPPORT_TOPICS)], STORES[i % len(STORES)]
+    task, res = ('1020', 'R-DEV') if i % 5 == 4 else ('1010', 'R-CONSULT')
+    october.append(('PRJ-1003', task, res, f'Support ticket {4101 + i}: {topic}, {store}', 1 + i % 4, 'Invoice', ''))
+for i in range(6):
+    october.append(('PRJ-1003', '1030', 'R-PM', f'Internal handover meeting, support team (week {41 + i % 4})', 1, 'Hold',
+                    'Not billed per contract: internal meeting.'))
+for i in range(4):
+    october.append(('PRJ-1003', '1020', 'R-DEV', f'Fix of our own defect in the {["loyalty export", "price import", "receipt layout", "gift card sync"][i]} (warranty)',
+                    2 + i % 2, 'Hold', 'Not billed per contract: warranty fix.'))
+for i in range(20):
+    october.append(('PRJ-3001', '1010', 'R-CONSULT', f'Finance health check: {HEALTH_TOPICS[i % len(HEALTH_TOPICS)]} ({"part 1" if i < 10 else "part 2"})',
+                    2 + i % 5, 'Invoice', ''))
+for i in range(12):
+    october.append(('PRJ-1002', '1010', 'R-CONSULT', f'Training session, store managers group {3 + i}', 4, 'Invoice', ''))
+for i in range(2):
+    october.append(('PRJ-1002', '1010', 'R-CONSULT', f'Course material preparation, groups {3 + 6 * i}-{8 + 6 * i}', 3, 'Hold',
+                    'Not billed per contract: course material.'))
+for i in range(6):
+    task, res = ('1020', 'R-DEV') if i % 2 else ('1010', 'R-CONSULT')
+    october.append(('PRJ-1001', task, res, f'Third store rollout, {["preparation", "configuration", "data migration", "go-live support", "cash desk tests", "handover"][i]}',
+                    4 + i % 3, 'Hold', 'Over the invoice cap.'))
+assert len(october) == 100, len(october)
+
+october_rows = []
+for n, (job, task, res, desc, qty, _, _) in enumerate(october):
+    october_rows.append(('PROJECT', 'BILLING', 200000 + n * 10000, WEEKDAYS[n % len(WEEKDAYS)].isoformat(), 'USAGE-2610B',
+                         job, task, 0, res, desc[:100], qty, JNL_BILLABLE))
+write_package('PBA-5-OCTOBER', 'Project Billing Agent demo - 5 October volume, 100 usage lines (post once, after PBA-4)', [
+    table_xml('Job Journal Line', 210,
+              [('Journal Template Name', 'pk'), ('Journal Batch Name', 'pk'), ('Line No.', 'pk'), ('Posting Date', 'v'),
+               ('Document No.', 'v'), ('Job No.', 'v'), ('Job Task No.', 'v'), ('Type', 'v'), ('No.', 'v'),
+               ('Description', 'v'), ('Quantity', 'v'), ('Line Type', 'v')],
+              october_rows),
+])
+
+expected_path = os.path.join(OUT, 'PBA-5-OCTOBER-expected.csv')
+with open(expected_path, 'w', newline='', encoding='utf-8') as f:
+    w = csv.writer(f)
+    w.writerow(['Line No.', 'Posting Date', 'Project No.', 'Resource', 'Description', 'Quantity', 'Amount', 'Expected decision', 'Expected note'])
+    for row, (job, task, res, desc, qty, decision, note) in zip(october_rows, october):
+        w.writerow([row[2], row[3], job, res, desc[:100], qty, qty * PRICE[res], decision, note])
+print(expected_path)
+
+invoiced = {}
+held = 0.0
+for job, task, res, desc, qty, decision, note in october:
+    amount = qty * PRICE[res]
+    if decision == 'Invoice':
+        invoiced[job] = invoiced.get(job, 0) + amount
+    else:
+        held += amount
+print('October volume (PBA-5 only):', {k: f'{v:,.2f}' for k, v in invoiced.items()}, f'held {held:,.2f}')

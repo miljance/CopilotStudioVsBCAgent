@@ -1,0 +1,101 @@
+Line No.,Posting Date,Project No.,Resource,Description,Quantity,Amount,Expected decision,Expected note
+200000,2026-10-01,PRJ-1003,R-CONSULT,"Support ticket 4101: POS terminal offline, store 3",1,150,Invoice,
+210000,2026-10-02,PRJ-1003,R-CONSULT,"Support ticket 4102: receipt printer not printing, store 5",2,300,Invoice,
+220000,2026-10-05,PRJ-1003,R-CONSULT,"Support ticket 4103: price update not on the shelf labels, store 7",3,450,Invoice,
+230000,2026-10-06,PRJ-1003,R-CONSULT,"Support ticket 4104: gift card balance wrong, store 12",4,600,Invoice,
+240000,2026-10-07,PRJ-1003,R-DEV,"Support ticket 4105: loyalty points not booked, store 14",1,140,Invoice,
+250000,2026-10-08,PRJ-1003,R-CONSULT,"Support ticket 4106: end-of-day report missing, store 3",2,300,Invoice,
+260000,2026-10-09,PRJ-1003,R-CONSULT,"Support ticket 4107: new cashier user, store 5",3,450,Invoice,
+270000,2026-10-12,PRJ-1003,R-CONSULT,"Support ticket 4108: scanner pairing, store 7",4,600,Invoice,
+280000,2026-10-13,PRJ-1003,R-CONSULT,"Support ticket 4109: return without receipt, store 12",1,150,Invoice,
+290000,2026-10-14,PRJ-1003,R-DEV,"Support ticket 4110: promotion not applied, store 14",2,280,Invoice,
+300000,2026-10-15,PRJ-1003,R-CONSULT,"Support ticket 4111: POS terminal offline, store 3",3,450,Invoice,
+310000,2026-10-16,PRJ-1003,R-CONSULT,"Support ticket 4112: receipt printer not printing, store 5",4,600,Invoice,
+320000,2026-10-19,PRJ-1003,R-CONSULT,"Support ticket 4113: price update not on the shelf labels, store 7",1,150,Invoice,
+330000,2026-10-20,PRJ-1003,R-CONSULT,"Support ticket 4114: gift card balance wrong, store 12",2,300,Invoice,
+340000,2026-10-21,PRJ-1003,R-DEV,"Support ticket 4115: loyalty points not booked, store 14",3,420,Invoice,
+350000,2026-10-22,PRJ-1003,R-CONSULT,"Support ticket 4116: end-of-day report missing, store 3",4,600,Invoice,
+360000,2026-10-23,PRJ-1003,R-CONSULT,"Support ticket 4117: new cashier user, store 5",1,150,Invoice,
+370000,2026-10-26,PRJ-1003,R-CONSULT,"Support ticket 4118: scanner pairing, store 7",2,300,Invoice,
+380000,2026-10-27,PRJ-1003,R-CONSULT,"Support ticket 4119: return without receipt, store 12",3,450,Invoice,
+390000,2026-10-28,PRJ-1003,R-DEV,"Support ticket 4120: promotion not applied, store 14",4,560,Invoice,
+400000,2026-10-29,PRJ-1003,R-CONSULT,"Support ticket 4121: POS terminal offline, store 3",1,150,Invoice,
+410000,2026-10-30,PRJ-1003,R-CONSULT,"Support ticket 4122: receipt printer not printing, store 5",2,300,Invoice,
+420000,2026-10-01,PRJ-1003,R-CONSULT,"Support ticket 4123: price update not on the shelf labels, store 7",3,450,Invoice,
+430000,2026-10-02,PRJ-1003,R-CONSULT,"Support ticket 4124: gift card balance wrong, store 12",4,600,Invoice,
+440000,2026-10-05,PRJ-1003,R-DEV,"Support ticket 4125: loyalty points not booked, store 14",1,140,Invoice,
+450000,2026-10-06,PRJ-1003,R-CONSULT,"Support ticket 4126: end-of-day report missing, store 3",2,300,Invoice,
+460000,2026-10-07,PRJ-1003,R-CONSULT,"Support ticket 4127: new cashier user, store 5",3,450,Invoice,
+470000,2026-10-08,PRJ-1003,R-CONSULT,"Support ticket 4128: scanner pairing, store 7",4,600,Invoice,
+480000,2026-10-09,PRJ-1003,R-CONSULT,"Support ticket 4129: return without receipt, store 12",1,150,Invoice,
+490000,2026-10-12,PRJ-1003,R-DEV,"Support ticket 4130: promotion not applied, store 14",2,280,Invoice,
+500000,2026-10-13,PRJ-1003,R-CONSULT,"Support ticket 4131: POS terminal offline, store 3",3,450,Invoice,
+510000,2026-10-14,PRJ-1003,R-CONSULT,"Support ticket 4132: receipt printer not printing, store 5",4,600,Invoice,
+520000,2026-10-15,PRJ-1003,R-CONSULT,"Support ticket 4133: price update not on the shelf labels, store 7",1,150,Invoice,
+530000,2026-10-16,PRJ-1003,R-CONSULT,"Support ticket 4134: gift card balance wrong, store 12",2,300,Invoice,
+540000,2026-10-19,PRJ-1003,R-DEV,"Support ticket 4135: loyalty points not booked, store 14",3,420,Invoice,
+550000,2026-10-20,PRJ-1003,R-CONSULT,"Support ticket 4136: end-of-day report missing, store 3",4,600,Invoice,
+560000,2026-10-21,PRJ-1003,R-CONSULT,"Support ticket 4137: new cashier user, store 5",1,150,Invoice,
+570000,2026-10-22,PRJ-1003,R-CONSULT,"Support ticket 4138: scanner pairing, store 7",2,300,Invoice,
+580000,2026-10-23,PRJ-1003,R-CONSULT,"Support ticket 4139: return without receipt, store 12",3,450,Invoice,
+590000,2026-10-26,PRJ-1003,R-DEV,"Support ticket 4140: promotion not applied, store 14",4,560,Invoice,
+600000,2026-10-27,PRJ-1003,R-CONSULT,"Support ticket 4141: POS terminal offline, store 3",1,150,Invoice,
+610000,2026-10-28,PRJ-1003,R-CONSULT,"Support ticket 4142: receipt printer not printing, store 5",2,300,Invoice,
+620000,2026-10-29,PRJ-1003,R-CONSULT,"Support ticket 4143: price update not on the shelf labels, store 7",3,450,Invoice,
+630000,2026-10-30,PRJ-1003,R-CONSULT,"Support ticket 4144: gift card balance wrong, store 12",4,600,Invoice,
+640000,2026-10-01,PRJ-1003,R-DEV,"Support ticket 4145: loyalty points not booked, store 14",1,140,Invoice,
+650000,2026-10-02,PRJ-1003,R-CONSULT,"Support ticket 4146: end-of-day report missing, store 3",2,300,Invoice,
+660000,2026-10-05,PRJ-1003,R-CONSULT,"Support ticket 4147: new cashier user, store 5",3,450,Invoice,
+670000,2026-10-06,PRJ-1003,R-CONSULT,"Support ticket 4148: scanner pairing, store 7",4,600,Invoice,
+680000,2026-10-07,PRJ-1003,R-CONSULT,"Support ticket 4149: return without receipt, store 12",1,150,Invoice,
+690000,2026-10-08,PRJ-1003,R-DEV,"Support ticket 4150: promotion not applied, store 14",2,280,Invoice,
+700000,2026-10-09,PRJ-1003,R-PM,"Internal handover meeting, support team (week 41)",1,160,Hold,Not billed per contract: internal meeting.
+710000,2026-10-12,PRJ-1003,R-PM,"Internal handover meeting, support team (week 42)",1,160,Hold,Not billed per contract: internal meeting.
+720000,2026-10-13,PRJ-1003,R-PM,"Internal handover meeting, support team (week 43)",1,160,Hold,Not billed per contract: internal meeting.
+730000,2026-10-14,PRJ-1003,R-PM,"Internal handover meeting, support team (week 44)",1,160,Hold,Not billed per contract: internal meeting.
+740000,2026-10-15,PRJ-1003,R-PM,"Internal handover meeting, support team (week 41)",1,160,Hold,Not billed per contract: internal meeting.
+750000,2026-10-16,PRJ-1003,R-PM,"Internal handover meeting, support team (week 42)",1,160,Hold,Not billed per contract: internal meeting.
+760000,2026-10-19,PRJ-1003,R-DEV,Fix of our own defect in the loyalty export (warranty),2,280,Hold,Not billed per contract: warranty fix.
+770000,2026-10-20,PRJ-1003,R-DEV,Fix of our own defect in the price import (warranty),3,420,Hold,Not billed per contract: warranty fix.
+780000,2026-10-21,PRJ-1003,R-DEV,Fix of our own defect in the receipt layout (warranty),2,280,Hold,Not billed per contract: warranty fix.
+790000,2026-10-22,PRJ-1003,R-DEV,Fix of our own defect in the gift card sync (warranty),3,420,Hold,Not billed per contract: warranty fix.
+800000,2026-10-23,PRJ-3001,R-CONSULT,Finance health check: interview with the controller (part 1),2,300,Invoice,
+810000,2026-10-26,PRJ-3001,R-CONSULT,Finance health check: month-end close review (part 1),3,450,Invoice,
+820000,2026-10-27,PRJ-3001,R-CONSULT,Finance health check: chart of accounts review (part 1),4,600,Invoice,
+830000,2026-10-28,PRJ-3001,R-CONSULT,Finance health check: bank reconciliation review (part 1),5,750,Invoice,
+840000,2026-10-29,PRJ-3001,R-CONSULT,Finance health check: fixed assets review (part 1),6,900,Invoice,
+850000,2026-10-30,PRJ-3001,R-CONSULT,Finance health check: VAT setup review (part 1),2,300,Invoice,
+860000,2026-10-01,PRJ-3001,R-CONSULT,Finance health check: dimension usage review (part 1),3,450,Invoice,
+870000,2026-10-02,PRJ-3001,R-CONSULT,Finance health check: approval workflow review (part 1),4,600,Invoice,
+880000,2026-10-05,PRJ-3001,R-CONSULT,Finance health check: report pack review (part 1),5,750,Invoice,
+890000,2026-10-06,PRJ-3001,R-CONSULT,Finance health check: findings workshop (part 1),6,900,Invoice,
+900000,2026-10-07,PRJ-3001,R-CONSULT,Finance health check: interview with the controller (part 2),2,300,Invoice,
+910000,2026-10-08,PRJ-3001,R-CONSULT,Finance health check: month-end close review (part 2),3,450,Invoice,
+920000,2026-10-09,PRJ-3001,R-CONSULT,Finance health check: chart of accounts review (part 2),4,600,Invoice,
+930000,2026-10-12,PRJ-3001,R-CONSULT,Finance health check: bank reconciliation review (part 2),5,750,Invoice,
+940000,2026-10-13,PRJ-3001,R-CONSULT,Finance health check: fixed assets review (part 2),6,900,Invoice,
+950000,2026-10-14,PRJ-3001,R-CONSULT,Finance health check: VAT setup review (part 2),2,300,Invoice,
+960000,2026-10-15,PRJ-3001,R-CONSULT,Finance health check: dimension usage review (part 2),3,450,Invoice,
+970000,2026-10-16,PRJ-3001,R-CONSULT,Finance health check: approval workflow review (part 2),4,600,Invoice,
+980000,2026-10-19,PRJ-3001,R-CONSULT,Finance health check: report pack review (part 2),5,750,Invoice,
+990000,2026-10-20,PRJ-3001,R-CONSULT,Finance health check: findings workshop (part 2),6,900,Invoice,
+1000000,2026-10-21,PRJ-1002,R-CONSULT,"Training session, store managers group 3",4,600,Invoice,
+1010000,2026-10-22,PRJ-1002,R-CONSULT,"Training session, store managers group 4",4,600,Invoice,
+1020000,2026-10-23,PRJ-1002,R-CONSULT,"Training session, store managers group 5",4,600,Invoice,
+1030000,2026-10-26,PRJ-1002,R-CONSULT,"Training session, store managers group 6",4,600,Invoice,
+1040000,2026-10-27,PRJ-1002,R-CONSULT,"Training session, store managers group 7",4,600,Invoice,
+1050000,2026-10-28,PRJ-1002,R-CONSULT,"Training session, store managers group 8",4,600,Invoice,
+1060000,2026-10-29,PRJ-1002,R-CONSULT,"Training session, store managers group 9",4,600,Invoice,
+1070000,2026-10-30,PRJ-1002,R-CONSULT,"Training session, store managers group 10",4,600,Invoice,
+1080000,2026-10-01,PRJ-1002,R-CONSULT,"Training session, store managers group 11",4,600,Invoice,
+1090000,2026-10-02,PRJ-1002,R-CONSULT,"Training session, store managers group 12",4,600,Invoice,
+1100000,2026-10-05,PRJ-1002,R-CONSULT,"Training session, store managers group 13",4,600,Invoice,
+1110000,2026-10-06,PRJ-1002,R-CONSULT,"Training session, store managers group 14",4,600,Invoice,
+1120000,2026-10-07,PRJ-1002,R-CONSULT,"Course material preparation, groups 3-8",3,450,Hold,Not billed per contract: course material.
+1130000,2026-10-08,PRJ-1002,R-CONSULT,"Course material preparation, groups 9-14",3,450,Hold,Not billed per contract: course material.
+1140000,2026-10-09,PRJ-1001,R-CONSULT,"Third store rollout, preparation",4,600,Hold,Over the invoice cap.
+1150000,2026-10-12,PRJ-1001,R-DEV,"Third store rollout, configuration",5,700,Hold,Over the invoice cap.
+1160000,2026-10-13,PRJ-1001,R-CONSULT,"Third store rollout, data migration",6,900,Hold,Over the invoice cap.
+1170000,2026-10-14,PRJ-1001,R-DEV,"Third store rollout, go-live support",4,560,Hold,Over the invoice cap.
+1180000,2026-10-15,PRJ-1001,R-CONSULT,"Third store rollout, cash desk tests",5,750,Hold,Over the invoice cap.
+1190000,2026-10-16,PRJ-1001,R-DEV,"Third store rollout, handover",6,840,Hold,Over the invoice cap.

@@ -44,6 +44,25 @@ Four RapidStart packages in `demo/`, built by `tools/build_demo_packages.py`:
 
 Draft invoices: **Fabrikam Retail 12,040** (5 lines, 2 projects) and **Tailspin Manufacturing 12,000**. If the project manager invoices the gift card line, the Fabrikam invoice becomes 13,440. Milestones are entered as resource `R-MILESTONE` in unit `PERCENT` (1 % = 400 USD), so the price comes from the resource card like every other line.
 
+Measured on bc29, the BC agent used **34 to 40 Copilot credits** per September run (about 22 steps for 10 lines), all of them *Generative answer*.
+
+### October volume (comparison only, not for the live demo)
+
+`PBA-5-OCTOBER` adds **100 usage lines** in October, to see how each agent scales with the number of lines. It adds project **PRJ-1003 Fabrikam store support desk** (in `PBA-3-PROJECTS`; billing notes: internal handover meetings and warranty fixes are not billed). The decision every line should get is in `demo/PBA-5-OCTOBER-expected.csv`.
+
+| Lines | Project | Expected |
+| --- | --- | --- |
+| 50 support tickets | PRJ-1003 | Invoice (18,220) |
+| 6 internal handover meetings, 4 warranty fixes | PRJ-1003 | Hold per contract |
+| 20 health check sessions | PRJ-3001 | Invoice (12,000) |
+| 12 training sessions | PRJ-1002 | Invoice (7,200) |
+| 2 course material preparations | PRJ-1002 | Hold per contract (course material is included) |
+| 6 third store rollout lines | PRJ-1001 | Hold: over the invoice cap, the project manager decides |
+
+**Order:** run September first and let it create its draft invoices (the September lines are then no longer "to invoice"), then run October with *Run Billing Now* → 31.10.2026. The October run also brings back the 4 September lines on hold and the 3 October lines of `PBA-4-USAGE`: **107 lines**. Expected draft invoices: **Fabrikam Retail 26,620** (PRJ-1003 + PRJ-1002) and **Proseware 13,800**; Tailspin none (milestone 2 still not reached); on hold 23 lines, 32,230, of which 8 wait for the project manager (all PRJ-1001, over the cap). If the gift card was invoiced in September, it is not in the October run (106 lines).
+
+Import with `./tools/Import-DemoData.ps1 -Tenant <tenant id> -SkipUsage -WithOctober` and post the journal once. **The monthly job runs on 1 November at 06:00 and starts an October run for the agent on its own:** put it On Hold after the session if that is not wanted.
+
 ## Set up
 
 1. In `App` and `Test`, copy `.vscode/launch.example.json` to `.vscode/launch.json` and set your tenant. `launch.json` is not in the repo.

@@ -11,6 +11,9 @@ PBA-4-USAGE creates new work: it puts the usage lines into the project journal P
 Once they are posted, applying PBA-4-USAGE again brings the same lines back and posting them again doubles the usage, so
 use -SkipUsage after the first time (or create a new company).
 
+-WithOctober also applies PBA-5-OCTOBER: 100 more October usage lines for the volume comparison, in the same journal.
+The same rule holds: post them once, and leave the switch off afterwards.
+
 Needs the Azure CLI signed in to the tenant (az account get-access-token).
 
 .EXAMPLE
@@ -18,17 +21,22 @@ Needs the Azure CLI signed in to the tenant (az account get-access-token).
 
 .EXAMPLE
 ./tools/Import-DemoData.ps1 -Tenant <tenant id> -SkipUsage
+
+.EXAMPLE
+./tools/Import-DemoData.ps1 -Tenant <tenant id> -SkipUsage -WithOctober
 #>
 param(
     [Parameter(Mandatory)] [string] $Tenant,
     [string] $Environment = 'bc29',
     [string] $Company = 'CopilotStudioVsBCAgent',
     [string] $PackageFolder = (Join-Path $PSScriptRoot '..\demo'),
-    [switch] $SkipUsage
+    [switch] $SkipUsage,
+    [switch] $WithOctober
 )
 $ErrorActionPreference = 'Stop'
 $packages = 'PBA-1-SETUP', 'PBA-2-MASTER', 'PBA-3-PROJECTS'
 if (-not $SkipUsage) { $packages += 'PBA-4-USAGE' }
+if ($WithOctober) { $packages += 'PBA-5-OCTOBER' }
 
 function Get-AuthHeader {
     @{ Authorization = "Bearer $(az account get-access-token --resource https://api.businesscentral.dynamics.com --tenant $Tenant --query accessToken -o tsv)" }
@@ -55,6 +63,13 @@ foreach ($code in $packages) {
     do { Start-Sleep -Seconds 5; $state = Invoke-RestMethod "$auto($($package.id))" -Headers (Get-AuthHeader) } while ($state.applyStatus -in 'InProgress', 'Scheduled')
     Write-Host "$code apply: $($state.applyStatus), errors: $($state.numberOfErrors)"
     if ($state.applyStatus -ne 'Completed') { throw "$code apply failed: $($state.applyError)" }
+    # A new project gets no Bill-to customer on its first apply, so its tasks and lines fail; a second apply, with the
+    # project in place, completes them (seen on bc29 for PRJ-1003).
+    if ($state.numberOfErrors -gt 0) {
+        Invoke-RestMethod "$auto($($package.id))/Microsoft.NAV.apply" -Method Post -Headers (Get-AuthHeader) | Out-Null
+        do { Start-Sleep -Seconds 5; $state = Invoke-RestMethod "$auto($($package.id))" -Headers (Get-AuthHeader) } while ($state.applyStatus -in 'InProgress', 'Scheduled')
+        Write-Host "$code apply again: $($state.applyStatus), errors: $($state.numberOfErrors)"
+    }
     if ($state.numberOfErrors -gt 0) {
         Write-Warning "$code has $($state.numberOfErrors) errors (Configuration Packages, package $code, Show Error)."
         # The test app publishes the errors as a read-only API (PBA Config Errors API).
